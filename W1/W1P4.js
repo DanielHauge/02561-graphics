@@ -1,9 +1,6 @@
 
-let W01P4 = {
-    hasCanvas: true,
-    header: "A rotating square",
-    description:"did og dat",
-
+let W1P4 = {
+    
     loadShaders : () => {
         let vertex = document.getElementById("vertex-shader");
         vertex.innerText = `
@@ -30,12 +27,11 @@ let W01P4 = {
                 gl_FragColor = v_Color;
             } 
         `
-    
     },
 
     init: () => {
 
-        W01P4.loadShaders();
+        W1P4.loadShaders();
         let canvas = document.getElementById("c");
         let gl = canvas.getContext("webgl");
         if (!gl){
@@ -86,11 +82,39 @@ let W01P4 = {
                 gl.uniform1f(rotation, rotationValue);
                 gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
             }, 100)
-            
         }
     
         render();
-    }
+    },
+
+    hasCanvas: true,
+    header: "A rotating square",
+    description:
+        "With one additional point, a square is achieved with \"TRIANGLE_STRIP\" draw style.\n"+
+        "To enable rotation, an additional shader attribute is added to control rotation. The new attribute rotation is then used with the trigonometric functions to create rotation.\n"+
+        "```\n"+
+        "...\n"+
+        "uniform float rotation;\n\n"+
+        
+        "void main(){\n"+
+            "\tgl_Position.x = -sin(rotation) * a_Position.x + cos(rotation) * a_Position.y;\n"+
+            "\tgl_Position.y = sin(rotation) * a_Position.y + cos(rotation) * a_Position.x;\n"+
+            "\tgl_Position.z = 0.0;\n"+
+            "\tgl_Position.w = 1.0;\n"+
+            "...\n"+
+        "```\n\n"+
+        "The rendering is contiunsly done with \"requestAnimFrame\", with a 100 miliseconds delay resulting in 10 frames per second.\n"+
+        "```javascript\n"+
+        "function render(){\n"+
+            "\tsetTimeout(function(){\n"+
+                "\t\trequestAnimationFrame(render);\n"+
+                "\t\trotationValue += 0.1;\n"+
+                "\t\tgl.clear(gl.COLOR_BUFFER_BIT);\n"+
+                "\t\tgl.uniform1f(rotation, rotationValue);\n"+
+                "\t\tgl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);\n"+
+            "\t}, 100)\n"+
+        "}\n"+
+        "```\n"
 } 
 
 

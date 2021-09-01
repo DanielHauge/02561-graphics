@@ -1,7 +1,10 @@
+
 let wshelper = {
 
     activePart: 0,
+    activeWorksheet: 0,
     parts: [],
+    md: null,
 
     newCanvas: (parent) => {
         let canvas = document.createElement("canvas");
@@ -11,58 +14,81 @@ let wshelper = {
         parent.appendChild(canvas);
     },
 
-    apply_part: (worksheetId) => {
-        const worksheet = wshelper.parts[worksheetId];
+    apply_part: (worksheetId, partId) => {
+        const part = wshelper.parts[partId];
         let panel = document.getElementById("panel");
         panel.innerHTML = '';
 
         
 
-        if (worksheet.header){
+        if (part.header){
             const header = document.createElement("h1");
             header.classList.add("mb-4");
-            header.innerHTML = worksheet.header;
+            header.innerHTML = part.header;
             panel.appendChild(header);
+            const javascriptLink = document.createElement("a");
+            javascriptLink.classList.add("btn", "btn-success", "btn-shadow" ,"px-3", "my-0", "ml-3", "text-left");
+            javascriptLink.title = "Download Theme";
+            javascriptLink.href = "W"+worksheetId+"P"+(partId+1)+".js";
+            javascriptLink.innerText = "JS Code";
+            javascriptLink.target = "_blank";
+            header.appendChild(javascriptLink);
         }
 
         const row = document.createElement("div");
         row.classList.add("row");
         panel.appendChild(row);
 
-        if (worksheet.hasCanvas){
+        if (part.hasCanvas){
             const canvasCol = document.createElement("div");
             canvasCol.classList.add("col-md-6");
             wshelper.newCanvas(canvasCol);
             row.appendChild(canvasCol);
         }
 
-        if (worksheet.description){
+        if (part.description){
             const descriptionCol = document.createElement("div");
             descriptionCol.classList.add("col-md-6");
             const description = document.createElement("div");
-            description.innerHTML = worksheet.description;
+            description.innerHTML = wshelper.md.render(part.description);
+            description.querySelectorAll('pre code').forEach((el) => {
+                hljs.highlightElement(el);
+                console.log("i did stuff")
+              });
             descriptionCol.appendChild(description);
             row.appendChild(descriptionCol);
         }
 
-        if (worksheet.init) {
-            worksheet.init();
+        if (part.init) {
+            part.init();
         }
 
 
     },
 
 
-    init: (initParts) => {
+    init: (worksheetId,initParts) => {
         wshelper.parts = initParts;
-        activePart = initParts.length-1;
+        wshelper.activePart = initParts.length-1;
+        wshelper.activeWorksheet = worksheetId;
+        wshelper.md = markdownit();
+        wshelper.md.highlight = function (str, lang) {
+            if (lang && hljs.getLanguage(lang)) {
+              try {
+                return hljs.highlight(str, { language: lang }).value;
+              } catch (__) {}
+            }
+        
+            return ''; // use external default escaping
+          };
+
 
         for (let i = 0; i < initParts.length; i++) {
             const part = initParts[i];
             wshelper.createPartRow(part, i);
         }
 
-        wshelper.apply_part(activePart);
+        wshelper.apply_part(wshelper.activeWorksheet,wshelper.activePart);
 
 
     },
@@ -85,10 +111,10 @@ let wshelper = {
 
         const buttonTd = document.createElement("td");
         const buttonA = document.createElement("a");
-        buttonA.classList.add("btn", "btn-success", "btn-shadow" ,"px-3", "my-0", "ml-3", "text-left");
+        buttonA.classList.add("btn", "btn-success", "btn-shadow" ,"px-3", "my-0", "ml-0", "text-right");
         buttonA.title = "Download Theme";
         buttonA.href = "#";
-        buttonA.onclick = () => wshelper.apply_part(i);
+        buttonA.onclick = () => wshelper.apply_part(wshelper.activeWorksheet,i);
         buttonA.innerText = "Apply";
         buttonTd.appendChild(buttonA);
         tr.appendChild(buttonTd);
@@ -97,3 +123,4 @@ let wshelper = {
     }
 
 }
+

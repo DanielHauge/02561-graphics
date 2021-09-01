@@ -1,8 +1,5 @@
-let W01P5 = {
-    hasCanvas: true,
-    header: "A fan of triangles",
-    description:"did og dat",
-
+let W1P5 = {
+    
     loadShaders : () => {
         let vertex = document.getElementById("vertex-shader");
         vertex.innerText = `
@@ -34,7 +31,7 @@ let W01P5 = {
 
     init: () => {
     
-        W01P5.loadShaders()
+        W1P5.loadShaders()
     
         let canvas = document.getElementById("c");
         let gl = canvas.getContext("webgl");
@@ -95,5 +92,26 @@ let W01P5 = {
             
         }
         render();
-    }
+    },
+
+    hasCanvas: true,
+    header: "A fan of triangles",
+    description:
+        "A circle can be imitated by lots of triangles. To create a convincing circle, more points is needed than when creating squares, triangles or dots. Position points can be generated with the trigonometric functions by looping around the unit circle in small increments. The following code illustrates how position and color data is generated:\n"+
+        "```javascript\n"+
+        "let radius = 0.5;\n"+
+        "let n = 150;\n"+
+        "let vertices = [vec2(0.0,0.0)];\n"+
+        "let colors = [vec3(1.0,1.0,1.0)];\n"+
+        "for (let i = -1; i < n; i++) {\n"+
+            "\tlet angle = 2*Math.PI*i/n\n"+
+            "\tvertices.push(vec2(radius*Math.cos(angle), radius*Math.sin(angle)));\n"+
+            "\tcolors.push(vec3(Math.abs(Math.cos(angle)), Math.abs(Math.sin(angle)), Math.abs(Math.cos(angle))));\n"+
+        "}\n"+
+        "```\n"+
+        "When the position and colors data is populated, the circle can be drawn with the following call. N.B we need the make sure to include all points for drawing with the ```n+2``` as last argument.\n"+
+        "```javascript\n"+
+        "gl.drawArrays(gl.TRIANGLE_FAN, 0, n+2);\n"+
+        "```\n"
+
 } 
