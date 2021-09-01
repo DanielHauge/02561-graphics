@@ -88,7 +88,7 @@ let W1P5 = {
                 gl.clear(gl.COLOR_BUFFER_BIT);
                 gl.uniform1f(rotation, rotationValue);
                 gl.drawArrays(gl.TRIANGLE_FAN, 0, n+2);
-            }, 100)
+            }, 25)
             
         }
         render();

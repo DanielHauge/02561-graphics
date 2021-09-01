@@ -81,7 +81,7 @@ let W1P4 = {
                 gl.clear(gl.COLOR_BUFFER_BIT);
                 gl.uniform1f(rotation, rotationValue);
                 gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-            }, 100)
+            }, 25)
         }
     
         render();
