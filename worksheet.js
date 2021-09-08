@@ -53,7 +53,6 @@ let wshelper = {
             description.innerHTML = wshelper.md.render(part.description);
             description.querySelectorAll('pre code').forEach((el) => {
                 hljs.highlightElement(el);
-                console.log("i did stuff")
               });
             descriptionCol.appendChild(description);
             row.appendChild(descriptionCol);
