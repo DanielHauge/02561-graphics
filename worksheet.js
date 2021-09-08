@@ -14,6 +14,24 @@ let wshelper = {
         parent.appendChild(canvas);
     },
 
+    RGBToHex: (r,g,b) => {
+        return "#" + Math.round(r).toString(16).padStart(2, '0') + Math.round(g).toString(16).padStart(2, '0') + Math.round(b).toString(16).padStart(2, '0');
+    },
+
+    hexToRGB: (h) => {
+        let r = 0, g = 0, b = 0;
+        if (h.length == 4) {
+          r = "0x" + h[1] + h[1];
+          g = "0x" + h[2] + h[2];
+          b = "0x" + h[3] + h[3];
+        } else if (h.length == 7) {
+          r = "0x" + h[1] + h[2];
+          g = "0x" + h[3] + h[4];
+          b = "0x" + h[5] + h[6];
+        }
+        return vec3(parseInt(r),parseInt(g),parseInt(b));
+    },
+
     apply_part: (worksheetId, partId) => {
         const part = wshelper.parts[partId];
         let panel = document.getElementById("panel");
@@ -44,6 +62,10 @@ let wshelper = {
             canvasCol.classList.add("col-md-6");
             wshelper.newCanvas(canvasCol);
             row.appendChild(canvasCol);
+
+            if (part.loadControls){
+                canvasCol.appendChild(part.loadControls());
+            }
         }
 
         if (part.description){
