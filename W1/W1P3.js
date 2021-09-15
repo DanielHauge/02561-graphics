@@ -27,7 +27,6 @@ let W1P3 = {
 
     init: () => {
 
-        W1P3.loadShaders();
         let canvas = document.getElementById("c");
         let gl = canvas.getContext("webgl");
         if (!gl){

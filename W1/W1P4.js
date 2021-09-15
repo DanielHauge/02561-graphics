@@ -31,7 +31,6 @@ let W1P4 = {
 
     init: () => {
 
-        W1P4.loadShaders();
         let canvas = document.getElementById("c");
         let gl = canvas.getContext("webgl");
         if (!gl){

@@ -35,7 +35,6 @@ let W1P5 = {
 
     init: () => {
     
-        W1P5.loadShaders()
     
         let canvas = document.getElementById("c");
         let gl = canvas.getContext("webgl");

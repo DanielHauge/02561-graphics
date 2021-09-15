@@ -22,7 +22,6 @@ let W1P1 = {
 
     init: () => {
         
-        W1P1.loadShaders();
 
         let canvas = document.getElementById("c");
         let gl = canvas.getContext("webgl");

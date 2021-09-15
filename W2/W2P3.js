@@ -1,5 +1,5 @@
 
-let W2P2 = {
+let W2P3 = {
     
     loadShaders : () => {
         let vertex = document.getElementById("vertex-shader");
@@ -31,11 +31,25 @@ let W2P2 = {
 
         // Clear button
         const clearButton = document.createElement("a");
-        clearButton.classList.add("btn", "btn-success", "btn-shadow" ,"px-3", "my-3", "ml-0", "text-left");
+        clearButton.classList.add("btn", "btn-success", "btn-shadow" ,"px-3", "my-0", "ml-0", "text-left");
         clearButton.title = "Download Theme";
         clearButton.innerText = "Clear";
         clearButton.id = "clearbut";
         div.appendChild(clearButton);
+
+        // Drawing mode:
+        const modeSelect = document.createElement("select");
+        modeSelect.classList.add("custom-select","d-block","w-100", "my-3");
+        modeSelect.id = "drawmode";
+        const dotOption = document.createElement("option");
+        dotOption.text = "Dot";
+        dotOption.value = 0;
+        const triangleOption = document.createElement("option");
+        triangleOption.text = "Triangle";
+        triangleOption.value = 1;
+        modeSelect.appendChild(dotOption);
+        modeSelect.appendChild(triangleOption);
+        div.appendChild(modeSelect);
 
         // Clear color selection
         const clearDiv = document.createElement("div");
@@ -107,12 +121,26 @@ let W2P2 = {
         gl.vertexAttribPointer(cColor, 3, gl.FLOAT, false, 0,0);
         gl.enableVertexAttribArray(cColor);
 
+        let dotsIndices = [];
+        let triangleIndices = [];
+        let triangleCounter = 0;
+
+
         function render(){
             gl.clear(gl.COLOR_BUFFER_BIT);
-            gl.drawArrays(gl.POINTS, 0, numPoints);
+            // Draw triangles.
+            for (let i = 0; i < triangleIndices.length; i++) {
+                const triangleIndex = triangleIndices[i];
+                gl.drawArrays(gl.TRIANGLES, triangleIndex, 3);
+            }
+            // Draw dots
+            for (let i = 0; i < dotsIndices.length; i++) {
+                const dotIndex = dotsIndices[i];
+                gl.drawArrays(gl.POINT, dotIndex, 1);
+                
+            }
         }
         
-        // let mousePos = vec2(0.0,0.0);
         canvas.addEventListener("click", (ev) => {
             // Submit position data
             var bbox = ev.target.getBoundingClientRect();
@@ -125,13 +153,37 @@ let W2P2 = {
             gl.bindBuffer(gl.ARRAY_BUFFER, cBuffer);
             gl.bufferSubData(gl.ARRAY_BUFFER, index*sizeof['vec3'], flatten(color));
 
-            numPoints = Math.max(numPoints, ++index); index %= max_verts;
+            // Draw modes.
+            switch (document.getElementById("drawmode").value){
+                case "0":
+                    dotsIndices.push(index);
+                    break;
+                case "1":
+                    if (triangleCounter < 2){
+                        dotsIndices.push(index);
+                        triangleCounter++;
+                    } else{
+                        dotsIndices.pop();
+                        triangleIndices.push(dotsIndices.pop());
+                        triangleCounter = 0;
+                    }
+                    break;
+                default:
+                    console.log("Drawmode is invalid?")
+                     break;
+            }
+            
+            index++;
+            index %= max_verts;
             render();
         });
 
         document.getElementById("clearbut").addEventListener("click", () => {
             index = 0;
             numPoints = 0;
+            triangleCounter = 0;
+            triangleIndices = [];
+            dotsIndices = [];
             render();
         });
 
@@ -141,46 +193,48 @@ let W2P2 = {
             render();
         });
 
+        document.getElementById("drawmode").addEventListener("change", (ev) => {
+            triangleCounter = 0;
+        });
+
+        
+
+
         render();
     },
 
     hasCanvas: true,
-    header: "Simple controls",
+    header: "Interactive drawing: Triangles",
     description:
-        "Controls are easily added as HTML. See ```loadControls``` function in JS Code. Eventlisteners can be added to facilitate interaction just like with part 1. The code below adds clear action to button:\n"+
+        "Drawing modes is implemented with a select. Selecting triangles, will create a triangle for every third point placed. Essentially just changing the way the shader is rendering the 3 points. "+
+        "This change of rendering is achieved by keeping track of indices of each object type. For every third point placed with triangle mode enabled, will remove the indices from points and turn them into triangles: \n"+
         "```javascript\n"+
-        "document.getElementById(\"clearbut\").addEventListener(\"click\", () => {\n"+
-            "\tindex = 0;\n"+
-            "\tnumPoints = 0;\n"+
-            "\trender();\n"+
-        "});\n"+
-        "```\n\n"+
-        "To change clear/background color, the HTML5 color picker is used. Whenever a new color is picked for clear/background, it is changed in the webgl context and rerendered. The code below adds this functionality:\n"+
+        "if (triangleCounter < 2){\n"+
+            "\tdotsIndices.push(index);\n"+
+            "\ttriangleCounter++;\n"+
+        "} else{\n"+
+            "\tdotsIndices.pop();\n"+
+            "\ttriangleIndices.push(dotsIndices.pop());\n"+
+            "\ttriangleCounter = 0;\n"+
+        "}\n"+
+        "```\n"+
+        "With these indices tracked, it is just a matter of rendering with different draw styles for draw calls. Render function is changed to:\n"+
         "```javascript\n"+
-        "document.getElementById(\"clear-select\").addEventListener(\"change\", (ev) => {\n"+
-            "\tconst newClearColor = wshelper.hexToRGB(ev.target.value);\n"+
-            "\tgl.clearColor(newClearColor[0]/255,newClearColor[1]/255,newClearColor[2]/255,1.0);\n"+
-            "\trender();\n"+
-        "});\n"+
-        "```\n\n"+
-        "As the drawing of points now work with 2 buffers, color and position, the draw on click need to switch between buffers when writing. The following code is the new click on canvas handler that switches buffers for colors and position:\n"+
-        "```javascript\n"+
-        "canvas.addEventListener(\"click\", (ev) => {\n"+
-            "\t// Submit position data\n"+
-            "\tvar bbox = ev.target.getBoundingClientRect();\n"+
-            "\tlet mousepos = vec2(2*(ev.clientX - bbox.left)/canvas.width - 1, 2*(canvas.height - ev.clientY + bbox.top - 1)/canvas.height - 1);\n"+
-            "\tgl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);\n"+
-            "\tgl.bufferSubData(gl.ARRAY_BUFFER, index*sizeof['vec2'], flatten(mousepos));\n"+
-            "\n"+
-            "\t// Submit color data\n"+
-            "\tconst color = wshelper.hexToRGB(document.getElementById(\"draw-select\").value)\n"+
-            "\tgl.bindBuffer(gl.ARRAY_BUFFER, cBuffer);\n"+
-            "\tgl.bufferSubData(gl.ARRAY_BUFFER, index*sizeof['vec3'], flatten(color));\n"+
-            "\n"+
-            "\tnumPoints = Math.max(numPoints, ++index); index %= max_verts;\n"+
-            "\trender();\n"+
-        "});\n"+
-        "```\n\n",
+        "function render(){\n"+
+            "\tgl.clear(gl.COLOR_BUFFER_BIT);\n"+
+            "\t// Draw triangles.\n"+
+            "\tfor (let i = 0; i < triangleIndices.length; i++) {\n"+
+                "\t\tconst triangleIndex = triangleIndices[i];\n"+
+                "\t\tgl.drawArrays(gl.TRIANGLES, triangleIndex, 3);\n"+
+            "\t}\n"+
+            "\t// Draw dots\n"+
+            "\tfor (let i = 0; i < dotsIndices.length; i++) {\n"+
+                "\t\tconst dotIndex = dotsIndices[i];\n"+
+                "\t\tgl.drawArrays(gl.POINT, dotIndex, 1);\n"+
+            "\t}\n"+
+        "}\n"+
+        "```\n"+
+        "",
 } 
 
 

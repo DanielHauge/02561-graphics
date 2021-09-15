@@ -79,7 +79,9 @@ let wshelper = {
             descriptionCol.appendChild(description);
             row.appendChild(descriptionCol);
         }
-
+        if (part.loadShaders){
+            part.loadShaders();
+        }
         if (part.init) {
             part.init();
         }
