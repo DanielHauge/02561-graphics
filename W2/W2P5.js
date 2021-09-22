@@ -1,5 +1,5 @@
 
-let W2P4 = {
+let W2P5 = {
     
     loadShaders : () => {
         let vertex = document.getElementById("vertex-shader");
@@ -100,20 +100,22 @@ let W2P4 = {
             console.error("Yo gl was not found")
         }
         gl.clearColor(0.8,0.9,1.0,1.0);
-        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     
         let program = initShaders(gl, "vertex-shader", "fragment-shader");
         gl.useProgram(program);
+        gl.enable(gl.DEPTH_TEST);
     
         let max_verts = 1500;
         let overrideVertsAt = 1250;
         let index = 0;
         let vBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, max_verts*sizeof['vec2'], gl.STATIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, max_verts*sizeof['vec3'], gl.STATIC_DRAW);
+        
         
         let vPosition = gl.getAttribLocation(program, "a_Position");
-        gl.vertexAttribPointer(vPosition, 2, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(vPosition, 3, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(vPosition);
 
         // Colors
@@ -133,7 +135,8 @@ let W2P4 = {
 
 
         function render(){
-            gl.clear(gl.COLOR_BUFFER_BIT);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+            
 
             // Draw triangles.
             for (let i = 0; i < triangleIndices.length; i++) {
@@ -157,9 +160,10 @@ let W2P4 = {
         canvas.addEventListener("click", (ev) => {
             // Submit position data
             var bbox = ev.target.getBoundingClientRect();
-            let mousepos = vec2(2*(ev.clientX - bbox.left)/canvas.width - 1, 2*(canvas.height - ev.clientY + bbox.top - 1)/canvas.height - 1);
+            let z = 1-2*(index+1)/max_verts
+            let mousepos = vec3(2*(ev.clientX - bbox.left)/canvas.width - 1, 2*(canvas.height - ev.clientY + bbox.top - 1)/canvas.height - 1, z);
             gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
-            gl.bufferSubData(gl.ARRAY_BUFFER, index*sizeof['vec2'], flatten(mousepos));
+            gl.bufferSubData(gl.ARRAY_BUFFER, index*sizeof['vec3'], flatten(mousepos));
 
             // Submit color data
             const color = wshelper.hexToRGB(document.getElementById("draw-select").value)
@@ -188,19 +192,19 @@ let W2P4 = {
                     } else{
                         circleIndices.push(dotsIndices.pop());
                         // Push additional vertices points for circle.
-                        const v = vec2(circleCenter[0]-mousepos[0], circleCenter[1]-mousepos[1]);
+                        const v = vec3(circleCenter[0]-mousepos[0], circleCenter[1]-mousepos[1], z);
                         const radius = Math.sqrt(v[0]*v[0]+v[1]*v[1]); // a^2 + b^2 = c^2
                         let n = 150;
                         let vertices = [];
                         let colors = [];
                         for (let i = -1; i < n; i++) {
-                            let angle = 2*Math.PI*i/n
-                            vertices.push(vec2(circleCenter[0]+radius*Math.cos(angle), circleCenter[1] + radius*Math.sin(angle)));
+                            let angle = 2*Math.PI*i/n                                                                               // Just adding 150, so subsequent triangles have higher depths than any 
+                            vertices.push(vec3(circleCenter[0]+radius*Math.cos(angle), circleCenter[1] + radius*Math.sin(angle), z));
                             colors.push(color);
                         }
                         // Submit additional position and color data:
                         gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
-                        gl.bufferSubData(gl.ARRAY_BUFFER, index*sizeof['vec2'], flatten(vertices));
+                        gl.bufferSubData(gl.ARRAY_BUFFER, index*sizeof['vec3'], flatten(vertices));
                         gl.bindBuffer(gl.ARRAY_BUFFER, cBuffer);
                         gl.bufferSubData(gl.ARRAY_BUFFER, index*sizeof['vec3'], flatten(colors));
                         index += 150;
@@ -239,21 +243,25 @@ let W2P4 = {
         });
 
         
-
-
         render();
     },
 
     hasCanvas: true,
-    header: "Interactive drawing: Circles",
+    header: "Depth in drawing",
     description:
-        "Inactive drawing for circles are very similar to triangles. Although this time, 2 points will generate 150 in this case additional vertices. Instead of keeping track of amount of points as with triangles, circles save a center point on first click. Second click in circle mode will calculate the length from circle center saved on first click to this second point and use it as radius. With the radius found, the circle vertices generated is identical to worksheet 1 part 5. The circles are then drawn with the ```TRIANGLE_FAN``` style in the draw call:\n"+
+        "Previously all circles would draw over all dots and all dots would draw over all triangles, as the render function would loop over types of objects to draw them sequentially. \n"+
+        "To enable drawing depth, a z coordinate is added. The z coordinate is added to the position vector, chaning it from a vec2 to a vec3. Letting the z coordinate control which objects should be drawn over others.\n"+
+        "In this case, all subsequent drawings should be drawn over previously drawn objects, therefor the z coordinate should just start at 1 and decrement to 0. The z will decrement in a small amount such that it will get to 0 when max vertices has been reached.\n\n"+
+        "Z is defined as: ```let z = 1-2*(index+1)/max_verts```\n\n"+
+        "To enable depth drawing, it can easily be enabled in webgl with the following code in initialization:\n"+
         "```javascript\n"+
-        "for (let i = 0; i < circleIndices.length; i++) {\n"+
-            "\tconst circleIndex = circleIndices[i];\n"+
-            "\tgl.drawArrays(gl.TRIANGLE_FAN, circleIndex, 152);\n"+
-        "}\n"+
+        "gl.enable(gl.DEPTH_TEST);\n"+
+        "```\n"+
+        "And clearing depth in during rendering also:\n"+
+        "```javascript\n"+
+        "gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);\n"+
         "```\n",
+
 } 
 
 
