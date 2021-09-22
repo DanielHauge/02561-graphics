@@ -94,7 +94,9 @@ let wshelper = {
         wshelper.parts = initParts;
         wshelper.activePart = initParts.length-1;
         wshelper.activeWorksheet = worksheetId;
-        wshelper.md = markdownit();
+        wshelper.md = markdownit().use(texmath, { engine: katex,
+            delimiters: 'dollars',
+            katexOptions: { macros: {"\\RR": "\\mathbb{R}"} } });
         wshelper.md.highlight = function (str, lang) {
             if (lang && hljs.getLanguage(lang)) {
               try {
