@@ -269,7 +269,7 @@ let W4P6 = {
             let ks = document.getElementById("ksSlider").value;
             let specular = mult(vec4( ks, ks, ks, ks ),vec4( 1.0, 1.0, 1.0, 1.0));
 
-            gl.uniform4fv(gl.getUniformLocation(program, "lightPosition"), flatten(vec4(0,0,1, 0.0)));
+            gl.uniform4fv(gl.getUniformLocation(program, "lightPosition"), flatten(vec4(0,100,100, 1.0)));
             gl.uniform4fv(gl.getUniformLocation(program, "diffuseProduct"),  flatten(diffuse));
             gl.uniform4fv(gl.getUniformLocation(program, "ambientProduct"),  flatten(ambient));
             gl.uniform4fv(gl.getUniformLocation(program, "specularProduct"), flatten(specular));
@@ -285,6 +285,7 @@ let W4P6 = {
         let up = vec3(0.0,1.0,0.0);
         let eye = vec3(0.0,0.0,-1.0);
         let P = ortho(-3.0, 3.0, -3.0, 3.0, -10.0, 10.0);
+        let scale = scalem(2,2,2);
         let V = lookAt(eye, at, up);
         let theta = 0.0;
         let radius = 4.5;
@@ -301,10 +302,11 @@ let W4P6 = {
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.GL_ACCUM_BUFFER_BIT | gl.GL_STENCIL_BUFFER_BIT);
                 
                 if (document.getElementById("spinCb").checked){
-                    theta += 0.1;
+                    theta += 0.075;
                 } 
                 eye = vec3(radius*Math.sin(theta)*Math.cos(phi),radius*Math.sin(theta)*Math.sin(phi), radius*Math.cos(theta));
                 V = lookAt(eye, at, up);
+                V = mult(V, scale);
                 normalMatrix = [
                     vec3(V[0][0], V[0][1], V[0][2]),
                     vec3(V[1][0], V[1][1], V[1][2]),
