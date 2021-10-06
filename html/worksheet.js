@@ -57,16 +57,20 @@ let wshelper = {
         row.classList.add("row");
         panel.appendChild(row);
 
+        const canvasCol = document.createElement("div");
+
         if (part.hasCanvas){
-            const canvasCol = document.createElement("div");
+            
             canvasCol.classList.add("col-md-6");
             wshelper.newCanvas(canvasCol);
-            row.appendChild(canvasCol);
-
-            if (part.loadControls){
-                canvasCol.appendChild(part.loadControls());
-            }
         }
+        
+
+        if (part.loadControls){
+            canvasCol.appendChild(part.loadControls());
+        }
+
+        row.appendChild(canvasCol);
 
         if (part.description){
             const descriptionCol = document.createElement("div");
@@ -145,6 +149,47 @@ let wshelper = {
         tr.appendChild(buttonTd);
 
         document.getElementById("table-body").appendChild(tr);
+    },
+
+    onReadOBJFile: (fileContent, fileName, gl, o, scale, reverse) => {
+        let objDoc = new OBJDoc(fileName);
+        let result = objDoc.parse(fileContent, scale, reverse);
+        console.log(result);
+        if (!result){
+            console.error("parse error");
+        }
+        return objDoc;
+    },
+
+    readOBJFile: (fileName, gl, model, scale, reverse, callback) => {
+        let request = new XMLHttpRequest();
+        request.onreadystatechange = () => {
+            if (request.readyState === 4 && request.status !== 404){
+                callback(wshelper.onReadOBJFile(request.responseText, fileName, gl, model, scale, reverse));
+            }
+        }
+        request.open('GET', fileName, true);
+        request.send();
+    },
+
+    onReadComplete: (gl, model, objDoc) => {
+        let drawingInfo = objDoc.getDrawingInfo();
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, model.vertexBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, drawingInfo.vertices, gl.STATIC_DRAW);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, model.normalBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, drawingInfo.normals, gl.STATIC_DRAW);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, model.colorBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, drawingInfo.colors, gl.STATIC_DRAW);
+
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.indexBuffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint8Array(drawingInfo.indices), gl.STATIC_DRAW);
+
+        console.log(drawingInfo);
+
+        return drawingInfo;
     }
 
 }

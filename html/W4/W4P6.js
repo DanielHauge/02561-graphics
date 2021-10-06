@@ -1,8 +1,3 @@
-
-
-
-
-
 let W4P6 = {
     
     loadShaders : () => {
@@ -230,9 +225,6 @@ let W4P6 = {
         // Function for recycle the buffers and initialize the sphere.
         function initSphere(){
             
-
-            
-
             vertices = [];
             vertexColors = [];
             normals = [];
@@ -276,10 +268,6 @@ let W4P6 = {
             gl.uniform1f(gl.getUniformLocation(program, "shininess"), document.getElementById("sSlider").value);
         }
         
-        
-        
-
-
         // PVM
         let at = vec3(0,0,0);
         let up = vec3(0.0,1.0,0.0);
@@ -315,8 +303,6 @@ let W4P6 = {
                 gl.uniformMatrix4fv(gl.getUniformLocation(program, "V"), false, flatten(V));
                 gl.uniformMatrix4fv(gl.getUniformLocation(program, "P"), false, flatten(P));
                 gl.uniformMatrix3fv(gl.getUniformLocation(program, "normalMatrix"), false, flatten(normalMatrix));     
-                
-                console.log(vertices.length);
                 
                 for (let i = 0; i<vertices.length; i+=3) gl.drawArrays(gl.TRIANGLES, i, 3);
                 

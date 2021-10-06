@@ -1,8 +1,3 @@
-
-
-
-
-
 let W4P2 = {
     
     loadShaders : () => {
@@ -138,9 +133,6 @@ let W4P2 = {
             gl.enableVertexAttribArray(vPosition);
         }
         
-        
-
-
         // Model view matrix location
         let PVMLoc = gl.getUniformLocation(program, "PVM");
 
