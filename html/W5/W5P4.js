@@ -118,6 +118,7 @@ let W5P4 = {
         // Indices:
         let iBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, iBuffer);
+        
 
         let model = new Object();
         model.vertexBuffer = vBuffer;
