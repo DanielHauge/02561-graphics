@@ -49,11 +49,7 @@ let W7P2 = {
                     specular = vec4(0.0, 0.0, 0.0, 1.0);
                 } 
 
-                vec3 Texcord;
-                Texcord.x = Pos.x;
-                Texcord.y = Pos.y;
-                Texcord.z = Pos.z;
-                Texcord = Texcord * mtex;
+                vec3 Texcord = Pos.xyz * mtex;
                 v_Color = textureCube(texMap, Texcord);
                 v_Color.a = 1.0;
                 gl_FragColor = v_Color;
@@ -274,7 +270,6 @@ let W7P2 = {
                 
                 
                 let mtex = inverse3(V);
-
                 gl.uniformMatrix3fv(gl.getUniformLocation(program, "mtex"), false, flatten(mtex));     
                 gl.uniformMatrix4fv(gl.getUniformLocation(program, "P"), false, flatten(mat4()));
                 gl.uniformMatrix4fv(gl.getUniformLocation(program, "V"), false, flatten(mat4()));
@@ -290,7 +285,41 @@ let W7P2 = {
     hasCanvas: true,
     header: "Environment",
     description:
-        ""
+        "The environment in the background is rendered as a trinagle strip of 4 vertices. A vertex in each corner of the viewable space. "+
+        "The environment is constructed by the last 4 vertices in the vertex buffer, and is drawn right after the sphere. Before the texture can be looked up correctly for the environment, "+
+        "Projectection and viewmodel matrices has to be the identity matrix as the vertices are the exact corners we want $[(-1,-1,0.99,1),(-1,1,0.99,1),(1,-1,0.99,1),(1,1,0.99,1)]$, and therefor the vertex position not be changed by projections or anything. "+
+        "To lookup the texture for the environment, the sphere's texture can be projected outwards. One way to think about it, is to think about the sphere as a perfect light lazer to paint it's surroundings. "+
+        "That way, the environment is manifested from the sphere's inverse view, such that whatever is on the sphere is behind the camera(viewport), "+
+        "and whatever is behind the sphere is projected onto the background as the environment." +
+        "The inverse view matrix is used to get the texture coordinate for the enviroment where as the identity matrix is used for the sphere in the following way:\n"+
+        "### Sphere rendering\n"+
+        "```javascript\n"+
+        "if (!(g_tex_ready < 5)) {\n"+
+            "\ttheta += 0.045;\n"+
+            "\tphi += 0.08;\n"+
+            "\teye = vec3(radius*Math.sin(theta)*Math.cos(0),radius*Math.sin(theta)*Math.sin(0), radius*Math.cos(theta));\n"+
+            "\tV = lookAt(eye, at, up);\n"+
+            "\tV = mult(V, scale);\n"+
+            "\tgl.uniformMatrix3fv(gl.getUniformLocation(program, \"mtex\"), false, flatten(mat3()));   \n"+  
+            "\tgl.uniformMatrix4fv(gl.getUniformLocation(program, \"P\"), false, flatten(P));\n"+
+            "\tgl.uniformMatrix4fv(gl.getUniformLocation(program, \"V\"), false, flatten(V));\n"+
+            "\tgl.drawArrays(gl.TRIANGLES, 0, indices.length);\n"+
+        "}\n"+
+        "```\n\n"+
+        "### Environment rendering\n"+
+        "```javascript\n"+
+        "let mtex = inverse3(V);\n"+
+        "gl.uniformMatrix3fv(gl.getUniformLocation(program, \"mtex\"), false, flatten(mtex));     \n"+
+        "gl.uniformMatrix4fv(gl.getUniformLocation(program, \"P\"), false, flatten(mat4()));\n"+
+        "gl.uniformMatrix4fv(gl.getUniformLocation(program, \"V\"), false, flatten(mat4()));\n"+
+        "gl.drawArrays(gl.TRIANGLE_STRIP, indices.length, 4);\n"+
+        "```\n\n"+
+        "The texture coordinates are then calculated before lookup in the following way in the shader: \n"+
+        "```\n"+
+        "vec3 Texcord = Pos.xyz * mtex;\n"+
+        "v_Color = textureCube(texMap, Texcord);\n"+
+        "```\n\n"
+
 } 
 
 

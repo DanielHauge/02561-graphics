@@ -52,10 +52,7 @@ let W7P3 = {
                     specular = vec4(0.0, 0.0, 0.0, 1.0);
                 } 
 
-                vec3 Texcord;
-                Texcord.x = Pos.x;
-                Texcord.y = Pos.y;
-                Texcord.z = Pos.z;
+                vec3 Texcord = Pos.xyz;
                 if ( reflective == 1.0){
                     Texcord = reflect(eyePos, Texcord);
                 }
@@ -299,7 +296,17 @@ let W7P3 = {
     hasCanvas: true,
     header: "Reflection",
     description:
-        ""
+        "Reflection makes the sphere into a perfect mirror. It is achieved by built-in GLSL ES function. ```reflect(vec3 incident, vec3 normal).```. \n"+
+        "Using a simple uniform float in the shader to determine if the object should be rendered as reflective or not is introduces.\n"+
+        "The texture lookup is now using reflect in case the object should be reflective: \n"+
+        "```\n"+
+        "vec3 Texcord = Pos.xyz;\n"+
+        "if ( reflective == 1.0 ){\n"+
+        "\t    Texcord = reflect(eyePos, Texcord);\n"+
+        "}\n"+
+        "Texcord = Texcord * mtex;\n"+
+        "v_Color = textureCube(texMap, Texcord);\n"+
+        "```\n"
 } 
 
 

@@ -61,10 +61,7 @@ let W7P4 = {
                     specular = vec4(0.0, 0.0, 0.0, 1.0);
                 } 
 
-                vec3 Texcord;
-                Texcord.x = Pos.x;
-                Texcord.y = Pos.y;
-                Texcord.z = Pos.z;
+                vec3 Texcord = Pos.xyz;
                 Texcord = Texcord * mtex;
                 if ( reflective == 1.0 ){
                     vec2 tc;
@@ -88,6 +85,41 @@ let W7P4 = {
     loadControls: () =>{
         let div = document.createElement("div");
 
+        let generateSelect = (id, label) => {
+            let select_row = document.createElement("div");
+            div.appendChild(select_row);
+            select_row.classList.add("row", "js-select");
+            
+            let select_col = document.createElement("div");
+            select_col.classList.add("col-md-5","mb-3");
+            select_row.appendChild(select_col);
+
+            let select_label = document.createElement("label");
+            select_label["for"] = id;
+            select_label.innerText = label;
+            select_col.appendChild(select_label);
+
+            let select = document.createElement("select");
+            select.classList.add("custom-select","d-block","w-100");
+            select.id = id;
+            select_col.appendChild(select);
+
+            return select;
+        }
+
+        let generateOptions = (select, opts) => {
+            for (let index = 0; index < opts.length; index++) {
+                const element = opts[index];
+                let option = document.createElement("option");
+                option.value = index;
+                option.innerText = element;
+                select.appendChild(option);
+            }
+        }
+
+        let textureSelect = generateSelect("texture_select", "Cubemap texture pack");
+        generateOptions(textureSelect, ["Brightday","Standard", "Autumn" , "Cloudyhills", "Greenhill", "Terrain"]);
+        
         
         return div;
     },
@@ -124,9 +156,10 @@ let W7P4 = {
         let vc = vec4(-0.816497, -0.471405, 0.333333, 1);
         let vd = vec4(0.816497, -0.471405, 0.333333,1);
 
-        // The model data arrays to be sent to buffers.
+        // Initial data containers and declarations..
         let vertices = [];
         let backgroundVertices = [vec4(-1.0,-1.0,0.9999,1.0),vec4(1.0,-1.0,0.9999,1.0), vec4(-1.0,1.0,0.9999,1.0),vec4(1.0,1.0,0.9999,1.0) ];
+        let cubemap = ["../images/brightday2_cubemap/brightday2_posx.png", "../images/brightday2_cubemap/brightday2_negx.png", "../images/brightday2_cubemap/brightday2_negy.png", "../images/brightday2_cubemap/brightday2_posy.png", "../images/brightday2_cubemap/brightday2_posz.png","../images/brightday2_cubemap/brightday2_negz.png"];
         let normals = [];
         let indices = [];
         let index = 0;
@@ -168,7 +201,7 @@ let W7P4 = {
             divideTriangle(a, c, d, n);
         }
         
-        // Function for recycle the buffers and initialize the sphere.
+        // Function for recycle the buffers and initialize the sphere and background.
         function initSphere(){
             
             // Buffers
@@ -180,13 +213,13 @@ let W7P4 = {
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
             const subDivs = 8;
             tetrahedron(va, vb,vc,vd, subDivs);
+            // Push background vertices
             for (const element in backgroundVertices){
                 vertices.push(backgroundVertices[element]);
                 normals.push(backgroundVertices[element])
             }
 
-
-
+            // Recycle and populate buffers.
             gl.deleteBuffer(gl.nBuffer);
             var nBuffer = gl.createBuffer();
             gl.bindBuffer( gl.ARRAY_BUFFER, nBuffer);
@@ -223,22 +256,14 @@ let W7P4 = {
             gl.uniform4fv(gl.getUniformLocation(program, "specularProduct"), flatten(specular));
             gl.uniform1f(gl.getUniformLocation(program, "shininess"), 0.8);
 
-            // Texture
-            let cubemap = [
-                    "../images/cm_left.png", // POSITIVE x
-                    "../images/cm_right.png", // NEGATIVE X
-                    "../images/cm_top.png",  // POSITVE Y
-                    "../images/cm_bottom.png",  // NEGATIVE Y
-                    "../images/cm_back.png", // POSITIVE Z
-                    "../images/cm_front.png" // NEGATIVE Z
-            ];
-
+            // Texture (using standard initialy)
             gl.activeTexture(gl.TEXTURE0);
             let texture = gl.createTexture();
             gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
             gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
             gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
+            // Load texture cube.
             for (let i = 0; i < 6; i++) {
                 let img = new Image();
                 img.crossOrigin = 'anonymous';
@@ -253,7 +278,7 @@ let W7P4 = {
             }
             gl.uniform1i(gl.getUniformLocation(program, "texMap"), 0);
 
-
+            // Load bump texture
             let bumpImg = new Image();
             bumpImg.onload = function () {
                 gl.activeTexture(gl.TEXTURE1);
@@ -269,15 +294,12 @@ let W7P4 = {
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
             }
             bumpImg.src = "../images/normalmap.png";
-
         }
-
-        
 
         
         // PVM
         let at = vec3(0,0,0);
-        let up = vec3(0.0,1.0,0.0);
+        let up = vec3(0.0,-1.0,0.0);
         let eye = vec3(0.0,0.0,-1.0);
         let P = ortho(-3.0, 3.0, -3.0, 3.0, -10.0, 10.0);
         let scale = scalem(1,1,1);
@@ -290,15 +312,12 @@ let W7P4 = {
             vec3(V[1][0], V[1][1], V[1][2]),
             vec3(V[2][0], V[2][1], V[2][2])
         ];
-
-        initSphere();
-
-        gl.uniformMatrix4fv(gl.getUniformLocation(program, "P"), false, flatten(P));
         gl.uniformMatrix3fv(gl.getUniformLocation(program, "normalMatrix"), false, flatten(normalMatrix));   
 
-        
+        // Render function.
         function render(){
             setTimeout(function(){
+
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
                 if (!(g_tex_ready < 5)) {
                     theta += 0.045;
@@ -328,13 +347,49 @@ let W7P4 = {
             }, 25);
         }
 
+        // Add eventhandler for new texture pack selection.
+        document.querySelectorAll(".js-select").forEach( select => {
+            select.addEventListener('input', () => {
+                switch (document.getElementById("texture_select").value){
+                    case "1": cubemap = ["../images/cm_left.png", "../images/cm_right.png", "../images/cm_top.png", "../images/cm_bottom.png", "../images/cm_back.png","../images/cm_front.png"]; initSphere(); up = vec3(0.0,1.0,0.0); break;
+                    case "2": cubemap = ["../images/autumn_cubemap/autumn_posx.png", "../images/autumn_cubemap/autumn_negx.png", "../images/autumn_cubemap/autumn_negy.png", "../images/autumn_cubemap/autumn_posy.png", "../images/autumn_cubemap/autumn_posz.png","../images/autumn_cubemap/autumn_negz.png"]; initSphere(); up = vec3(0.0,-1.0,0.0); break;
+                    case "0": cubemap = ["../images/brightday2_cubemap/brightday2_posx.png", "../images/brightday2_cubemap/brightday2_negx.png", "../images/brightday2_cubemap/brightday2_negy.png", "../images/brightday2_cubemap/brightday2_posy.png", "../images/brightday2_cubemap/brightday2_posz.png","../images/brightday2_cubemap/brightday2_negz.png"]; initSphere();up = vec3(0.0,-1.0,0.0);break;
+                    case "3": cubemap = ["../images/cloudyhills_cubemap/cloudyhills_posx.jpg", "../images/cloudyhills_cubemap/cloudyhills_negx.jpg", "../images/cloudyhills_cubemap/cloudyhills_negy.jpg", "../images/cloudyhills_cubemap/cloudyhills_posy.jpg", "../images/cloudyhills_cubemap/cloudyhills_posz.jpg","../images/cloudyhills_cubemap/cloudyhills_negz.jpg"]; initSphere();up = vec3(0.0,-1.0,0.0); break;
+                    case "4": cubemap = ["../images/greenhill_cubemap/greenhill_posx.png", "../images/greenhill_cubemap/greenhill_negx.png", "../images/greenhill_cubemap/greenhill_negy.png", "../images/greenhill_cubemap/greenhill_posy.png", "../images/greenhill_cubemap/greenhill_posz.png","../images/greenhill_cubemap/greenhill_negz.png"]; initSphere();up = vec3(0.0,-1.0,0.0); break;
+                    case "5": cubemap = ["../images/terrain_cubemap/terrain_posx.png", "../images/terrain_cubemap/terrain_negx.png", "../images/terrain_cubemap/terrain_negy.png", "../images/terrain_cubemap/terrain_posy.png", "../images/terrain_cubemap/terrain_posz.png","../images/terrain_cubemap/terrain_negz.png"]; initSphere();up = vec3(0.0,-1.0,0.0); break;
+                    default: console.error("invalid value for texture_seelct"); break;
+                }
+            })
+        });
+
+        initSphere();
         render();
     },
 
     hasCanvas: true,
     header: "Bump mapping",
     description:
-        ""
+        "Just like Blinn-Phong lighting can make an object seem smoother, using a bump map can make an object look bumpy. \n"+
+        "The bump map texture can be uploaded and used just like previously in worksheet 6. To use the bump map to facilitate bumpyness, the bump map can be seen as a lookup map for texture cordinates to be used for the cubemap. "+
+        "Eseentialy looking up the normal in the bump map using spherical inverse mapping, which can then be used to get texture cordinates for the cube texturemap. Additionally using ```reflect``` function. "+
+        "N.B. reflective attribute is also used to distinguish if bump map should be used or not (Essentially determining if sphere or environment): \n"+
+        "```\n"+
+        "vec3 Texcord = Pos.xyz;\n"+
+        "Texcord = Texcord * mtex;\n"+
+        "if ( reflective == 1.0 ){\n"+
+            "\tvec2 tc;\n"+
+            "\ttc.x = 1.0 - (atan(Pos.z, Pos.x)/(2.0*3.14));\n"+
+            "\ttc.y = acos(Pos.y)/3.14;\n"+
+            "\tvec4 texN = texture2D(texMap1, tc);\n"+
+            "\tvec3 texN3 = texN.xyz;\n"+
+            "\tvec3 NT = normalize(2.0*texN3 - 1.0);\n"+
+            "\tvec3 nBump = rotate_to_normal(NT,Texcord);\n"+
+            "\tTexcord = reflect(eyePos, nBump);\n"+
+        "}\n"+
+        "v_Color = textureCube(texMap, Texcord);\n"+
+        "```\n"+
+        "Notice the cubemap texture pack can be changed with in the selection to the left."
+        
 } 
 
 

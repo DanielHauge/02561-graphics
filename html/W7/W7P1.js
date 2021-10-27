@@ -48,11 +48,8 @@ let W7P1 = {
                     specular = vec4(0.0, 0.0, 0.0, 1.0);
                 } 
 
-                vec3 Texcord;
-                Texcord.x = Pos.x;
-                Texcord.y = Pos.y;
-                Texcord.z = Pos.z;
-                v_Color = textureCube(texMap, Texcord);
+
+                v_Color = textureCube(texMap, Pos.xyz);
                 v_Color.a = 1.0;
                 gl_FragColor = v_Color;
             } 
@@ -206,7 +203,6 @@ let W7P1 = {
             gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
             gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
             gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-
             for (let i = 0; i < 6; i++) {
                 let img = new Image();
                 img.crossOrigin = 'anonymous';
@@ -265,7 +261,33 @@ let W7P1 = {
     hasCanvas: true,
     header: "Cube map",
     description:
+        "Instead of a single image that is being wrapped around the sphere as texture. A set of 6 images can be used as a cubemap such that colour is looked up in the cubemap based on the range $[-1;1]$ in $x, y, z$. In order to make the texture lookup look great, the images has to be seamless. "+
+        "Images are put into texture store with the following: \n"+
+        "```javascript\n"+
+        "gl.activeTexture(gl.TEXTURE0);\n"+
+        "let texture = gl.createTexture();\n"+
+        "gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);\n"+
+        "gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);\n"+
+        "gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);\n"+
+        "for (let i = 0; i < 6; i++) {\n"+
+            "\tlet img = new Image();\n"+
+            "\timg.crossOrigin = 'anonymous';\n"+
+            "\timg.textarget = gl.TEXTURE_CUBE_MAP_POSITIVE_X + i;\n"+
+            "\timg.onload = function (event) {\n"+
+                "\t\tgl.activeTexture(gl.TEXTURE0);\n"+
+                "\t\tgl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);\n"+
+                "\t\tgl.texImage2D(img.textarget, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, img);\n"+
+                "\t\tg_tex_ready++;\n"+
+            "\t}\n"+
+            "\timg.src = cubemap[i];\n"+
+        "}\n"+
+        "```\n"+
+        "The colour of the sphere is gotten with a lookup in the texture map with the following in the shader, where Pos.xyz is the normals of the sphere: \n"+
+        "```\n"+
+        "v_Color = textureCube(texMap, Pos.xyz);\n"+
+        "```\n"+
         ""
+
 } 
 
 
