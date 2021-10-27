@@ -1,4 +1,4 @@
-let W6P3 = {
+let W7P1 = {
     
     loadShaders : () => {
         let vertex = document.getElementById("vertex-shader");
@@ -27,7 +27,7 @@ let W6P3 = {
         let fragment = document.getElementById("fragment-shader");
         fragment.innerText = `
             precision mediump float;
-            uniform sampler2D texMap;
+            uniform samplerCube texMap;
             uniform float shininess;
             uniform vec4 ambientProduct;
             uniform vec4 diffuseProduct;
@@ -48,10 +48,11 @@ let W6P3 = {
                     specular = vec4(0.0, 0.0, 0.0, 1.0);
                 } 
 
-                vec2 Texcord;
-                Texcord.x = 1.0 - (atan(Pos.z, Pos.x)/(2.0*3.14));
-                Texcord.y = acos(Pos.y)/3.14;
-                v_Color = (ambient * texture2D(texMap, Texcord) * specular) + texture2D(texMap, Texcord) * vec4(0.2,0.2,0.2,0.2) ;
+                vec3 Texcord;
+                Texcord.x = Pos.x;
+                Texcord.y = Pos.y;
+                Texcord.z = Pos.z;
+                v_Color = textureCube(texMap, Texcord);
                 v_Color.a = 1.0;
                 gl_FragColor = v_Color;
             } 
@@ -63,41 +64,6 @@ let W6P3 = {
     loadControls: () =>{
         let div = document.createElement("div");
 
-        let generateSelect = (id, label) => {
-            let select_row = document.createElement("div");
-            div.appendChild(select_row);
-            select_row.classList.add("row", "js-select");
-            
-            let select_col = document.createElement("div");
-            select_col.classList.add("col-md-5","mb-3");
-            select_row.appendChild(select_col);
-
-            let select_label = document.createElement("label");
-            select_label["for"] = id;
-            select_label.innerText = label;
-            select_col.appendChild(select_label);
-
-            let select = document.createElement("select");
-            select.classList.add("custom-select","d-block","w-100");
-            select.id = id;
-            select_col.appendChild(select);
-
-            return select;
-        }
-
-        let generateOptions = (select, opts) => {
-            for (let index = 0; index < opts.length; index++) {
-                const element = opts[index];
-                let option = document.createElement("option");
-                option.value = index;
-                option.innerText = element;
-                select.appendChild(option);
-            }
-        }
-
-        let mini_filter_select = generateSelect("mini_filter_select", "Magnification filtering");
-        generateOptions(mini_filter_select, ["Nearest", "Linear", "Nearest-Mipmap-Nearest", "Linear-Mipmap-Nearest", "Nearest-Mipmap-Linear", "Linear-Mipmap-Linear"]);
-        
         
         return div;
     },
@@ -138,6 +104,8 @@ let W6P3 = {
         let normals = [];
         let indices = [];
         let index = 0;
+        let g_tex_ready = 0;
+
 
         // Function for dividing a triangle given by points a,b,c.  
         function divideTriangle(a, b, c, count) {
@@ -224,22 +192,34 @@ let W6P3 = {
             gl.uniform1f(gl.getUniformLocation(program, "shininess"), 0.8);
 
             // Texture
-            let img = new Image();
-            img.onload = function () {
-                
-                let texture = gl.createTexture();
-                gl.bindTexture(gl.TEXTURE_2D, texture);
-                gl.activeTexture(gl.TEXTURE0);
-                gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, img);
-                gl.uniform1i(gl.getUniformLocation(program, "texMap"), 0);
-                gl.generateMipmap(gl.TEXTURE_2D);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_NEAREST);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+            let cubemap = [
+                    "../images/cm_left.png", // POSITIVE x
+                    "../images/cm_right.png", // NEGATIVE X
+                    "../images/cm_top.png",  // POSITVE Y
+                    "../images/cm_bottom.png",  // NEGATIVE Y
+                    "../images/cm_back.png", // POSITIVE Z
+                    "../images/cm_front.png" // NEGATIVE Z
+            ];
+
+            gl.activeTexture(gl.TEXTURE0);
+            let texture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+            gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+            for (let i = 0; i < 6; i++) {
+                let img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.textarget = gl.TEXTURE_CUBE_MAP_POSITIVE_X + i;
+                img.onload = function (event) {
+                    gl.activeTexture(gl.TEXTURE0);
+                    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+                    gl.texImage2D(img.textarget, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, img);
+                    g_tex_ready++;
+                }
+                img.src = cubemap[i];
             }
-            img.src = "../images/earth.jpg";
+            gl.uniform1i(gl.getUniformLocation(program, "texMap"), 0);
         }
         
         // PVM
@@ -263,52 +243,29 @@ let W6P3 = {
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "P"), false, flatten(P));
         gl.uniformMatrix3fv(gl.getUniformLocation(program, "normalMatrix"), false, flatten(normalMatrix));     
         
-
         function render(){
             setTimeout(function(){
-                
-                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-                theta += 0.045;
-                phi += 0.08;
-                eye = vec3(radius*Math.sin(theta)*Math.cos(0),radius*Math.sin(theta)*Math.sin(0), radius*Math.cos(theta));
-                V = lookAt(eye, at, up);
-                V = mult(V, scale);
-                gl.uniformMatrix4fv(gl.getUniformLocation(program, "V"), false, flatten(V));
-
-                
-                gl.drawArrays(gl.TRIANGLES, 0, indices.length);
+                if (!(g_tex_ready < 5)) {
+                    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+                    theta += 0.045;
+                    phi += 0.08;
+                    eye = vec3(radius*Math.sin(theta)*Math.cos(0),radius*Math.sin(theta)*Math.sin(0), radius*Math.cos(theta));
+                    V = lookAt(eye, at, up);
+                    V = mult(V, scale);
+                    gl.uniformMatrix4fv(gl.getUniformLocation(program, "V"), false, flatten(V));
+                    gl.drawArrays(gl.TRIANGLES, 0, indices.length);
+                }
                 requestAnimationFrame(render);
             }, 25);
         }
-
-
-        document.querySelectorAll(".js-select").forEach( select => {
-            select.addEventListener('input', () => {
-                switch (document.getElementById("mini_filter_select").value){
-                    case "0": gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST); break;
-                    case "1": gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); break;
-                    case "2": gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_NEAREST); break;
-                    case "3": gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST); break;
-                    case "4": gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_LINEAR); break;
-                    case "5": gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR); break;
-                    default: console.error("invalid value for magni_filter_select"); break;
-                }
-            })
-        });
-
 
         render();
     },
 
     hasCanvas: true,
-    header: "A beautiful wet rock",
+    header: "Cube map",
     description:
-        "Using phong lighting from previus implementation, and sphere implementation from worksheet 4 as baseline. "+
-        "The texture is loaded like in previous parts, but instead of a calculated texture an image is used as texture. " +
-        "The texture is very large compared to the face it is used on, so it will primarily be minification issues that is observed. "+
-        "**__Disclaimer: I clearly see the effect of different texture filtering on part 2, however i cannot see a clear difference in part 3 with the spinning earth__**. \n"+
-        "Disregarding previous statement, if one would need to increase quality without too much blurring, LINEAR/interpolation should not be used. The \"LINEAR_MIPMAP_NEAREST\" could be a good candidat for providing good results without too much blurryness. It is using interpolating filter on the the reduced mipmap, otherwise not. This should give the effect of a retained pattern without too much blurryness."
-        ,
+        ""
 } 
 
 
