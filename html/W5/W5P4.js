@@ -8,11 +8,11 @@ let W5P4 = {
         attribute vec4 a_Color;
         varying vec4 v_Color;
 
-        varying vec3 N, L, E;
 
         uniform mat4 P;
         uniform mat4 V;
 
+        varying vec3 N, L, E;
         uniform vec4 lightPosition;
         uniform mat3 normalMatrix;
 

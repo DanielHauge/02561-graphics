@@ -52,7 +52,7 @@ let W6P1 = {
 
         
         // Vertices and texels.
-        let vertices = [vec3(-4,-1,-1), vec3(4,-1,-1), vec3(4,-1,-21), vec4(-4,-1,-21)];
+        let vertices = [vec3(4,-1,-1), vec3(-4,-1,-1), vec3(4,-1,-21), vec3(-4,-1,-21)];
         gl.vBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, gl.vBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, flatten(vertices), gl.STATIC_DRAW);
@@ -61,7 +61,7 @@ let W6P1 = {
         gl.vertexAttribPointer(vPosition, 3, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(vPosition);
 
-        let texCords = [vec2(-1.5, 0), vec2(2.5,0), vec2(2.5,10), vec2(-1.5,10)];
+        let texCords = [vec2(2.5,0), vec2(-1.5, 0), vec2(2.5,10), vec2(-1.5,10)];
         gl.tBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, gl.tBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, flatten(texCords), gl.STATIC_DRAW);
@@ -121,7 +121,7 @@ let W6P1 = {
 
         function render(){
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-            gl.drawArrays(gl.TRIANGLES, 0, 3);
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         }
 
         render();

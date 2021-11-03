@@ -11,6 +11,7 @@ let wshelper = {
         canvas.height = "512";
         canvas.width = "512";
         canvas.id = "c";
+        canvas.style = "background:black;";
         parent.appendChild(canvas);
     },
 
