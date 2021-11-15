@@ -155,7 +155,6 @@ let wshelper = {
     onReadOBJFile: (fileContent, fileName, gl, o, scale, reverse) => {
         let objDoc = new OBJDoc(fileName);
         let result = objDoc.parse(fileContent, scale, reverse);
-        console.log(result);
         if (!result){
             console.error("parse error");
         }
@@ -188,7 +187,6 @@ let wshelper = {
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.indexBuffer);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint8Array(drawingInfo.indices), gl.STATIC_DRAW);
 
-        console.log(drawingInfo);
 
         return drawingInfo;
     }
