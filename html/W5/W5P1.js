@@ -177,6 +177,10 @@ let W5P1 = {
         "    log.Fatal(http.ListenAndServe(\":80\", nil))\n"+
         "}\n" +
         "```\n"+
+        "The server can easily be started with the following command: \n"+
+        "```\n"+
+        "go run main.go\n"+
+        "```\n"+
         "The go server is containerized in docker with the following simple 2 staged dockerfile/docker build config:\n"+
         "```\n"+
         "FROM golang as build-stage\n"+

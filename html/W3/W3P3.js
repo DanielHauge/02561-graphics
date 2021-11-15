@@ -154,7 +154,7 @@ let W3P3 = {
         "The same as with translation, multiple affine transformation works well for matrix multiplication.\n"+
         "$$p'= R_z \\times p$$\n"+
         "Where we can define the rotation matrix for the z axis with:\n"+
-        "$$R_z(\\theta) = \\begin{bmatrix} cos(\\theta) &  -sin(\\theta) & 0 & 0\\\\sin(\\theta) & cos(\\theta) & 0 & 0 \\\\ 0 & 0 & 1 & 0 \\\\ 0 & 0 & 0 & 1 \\end{bmatrix}$$\n"+
+        "$$R_z(\\theta) = \\begin{bmatrix} cos(\\theta) &  -sin(\\theta) & 0 & 0\\\\sin(\\theta) & cos(\\theta) & 0 & 0 \\\\ 0 & 0 & 1 & 0 \\\\ 0 & 0 & 0 & 1 \\end{bmatrix} $$\n"+
         "There is different, but similar matrices for x and y. They are similar in terms of leaving one axis alone while using trigonometric functions to rotate points around for the other axes.\n"+
         "#### Perspectives & Camera...\n"+
         "Using perspective and lookAt function in webgl that also produces basis-changing matrices to achieve the goal of camera position and field of view perspective."+
