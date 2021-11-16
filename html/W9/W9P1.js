@@ -311,8 +311,6 @@ let W9P1 = {
         gl.vertexAttribPointer(program.a_Texcord, 2, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(program.a_Texcord);
 
-        // gl.uniform4fv(gl.getUniformLocation(program, "shadow_color"), flatten(vec4(0,0,0,1.0)));
-
         
         // PVM
         let V = mat4();

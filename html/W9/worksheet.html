@@ -13,6 +13,9 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/markdown-it-texmath/css/texmath.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.18/dist/katex.min.css" integrity="sha384-zTROYFVGOfTw7JV7KUu8udsvW2fx4lWOsCEDqhBreBwlHI4ioVRtmIvEThzJHGET" crossorigin="anonymous">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/highlight.min.js"></script>
+    <script src="../Common/cuon-matrix.js"></script>
+    <script src="../Common/cuon-utils.js"></script>
+
     <script type="text/javascript" src="W9P1.js" ></script>
     <script type="text/javascript" src="W9P2.js" ></script>
 
@@ -82,10 +85,12 @@
   <script id="object-fragment-shader" type="x-shader/x-fragment">  </script>
   <script id="ground-vertex-shader" type="x-shader/x-vertex">  </script>
   <script id="ground-fragment-shader" type="x-shader/x-fragment">  </script>
+  <script id="shadow-vertex-shader" type="x-shader/x-vertex">  </script>
+  <script id="shadow-fragment-shader" type="x-shader/x-fragment">  </script>
   <script type="text/javascript" src="../worksheet.js" ></script>
   <script> 
     window.onload = function init(){
-      wshelper.init(9,[W9P1]);
+      wshelper.init(9,[W9P1, W9P2]);
     }
   </script>
   </body>
