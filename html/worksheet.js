@@ -47,7 +47,7 @@ let wshelper = {
             panel.appendChild(header);
             const javascriptLink = document.createElement("a");
             javascriptLink.classList.add("btn", "btn-success", "btn-shadow" ,"px-3", "my-0", "ml-3", "text-left");
-            javascriptLink.title = "Download Theme";
+            javascriptLink.title = "Javascript file";
             javascriptLink.href = "W"+worksheetId+"P"+(partId+1)+".js";
             javascriptLink.innerText = "JS Code";
             javascriptLink.target = "_blank";
@@ -142,7 +142,7 @@ let wshelper = {
         const buttonTd = document.createElement("td");
         const buttonA = document.createElement("a");
         buttonA.classList.add("btn", "btn-success", "btn-shadow" ,"px-3", "my-0", "ml-0", "text-right");
-        buttonA.title = "Download Theme";
+        buttonA.title = "Apply part " + (i+1);
         buttonA.href = "#";
         buttonA.onclick = () => wshelper.apply_part(wshelper.activeWorksheet,i);
         buttonA.innerText = "Apply";

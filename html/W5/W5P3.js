@@ -122,7 +122,6 @@ let W5P3 = {
                     g_drawingInfo = wshelper.onReadComplete(gl, model, g_objDoc);
                 }
                 if (g_drawingInfo === null || g_drawingInfo === undefined) {
-                    console.log("Drawing info was false");
                     return;
                 }
 

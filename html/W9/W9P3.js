@@ -1,4 +1,4 @@
-let W9P2 = {
+let W9P3 = {
     
     loadShaders : () => {
         // Different kind of shader loading as recommended using the "Display shaddows" seciton.
@@ -94,9 +94,9 @@ let W9P2 = {
             slider.addEventListener("input", callback);
         }
 
-        newSlider("Quad Rotation Plane-X: ", "45",ev => W9P2.PLANE_ROT_X = ev.target.value);
-        newSlider("Quad Rotation Plane-Y: ", "45",ev => W9P2.PLANE_ROT_Y = ev.target.value);
-        newSlider("Quad Rotation Plane-Z: ", "45",ev => W9P2.PLANE_ROT_Z = ev.target.value);
+        newSlider("Quad Rotation Plane-X: ", "45",ev => W9P3.PLANE_ROT_X = ev.target.value);
+        newSlider("Quad Rotation Plane-Y: ", "45",ev => W9P3.PLANE_ROT_Y = ev.target.value);
+        newSlider("Quad Rotation Plane-Z: ", "45",ev => W9P3.PLANE_ROT_Z = ev.target.value);
 
         return div;
     },
@@ -152,7 +152,7 @@ let W9P2 = {
           return error();
         }
         gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, W9P2.OFFSCREEN_WIDTH, W9P2.OFFSCREEN_HEIGHT, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, W9P3.OFFSCREEN_WIDTH, W9P3.OFFSCREEN_HEIGHT, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
       
         depthBuffer = gl.createRenderbuffer(); 
@@ -161,7 +161,7 @@ let W9P2 = {
           return error();
         }
         gl.bindRenderbuffer(gl.RENDERBUFFER, depthBuffer);
-        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, W9P2.OFFSCREEN_WIDTH, W9P2.OFFSCREEN_HEIGHT);
+        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, W9P3.OFFSCREEN_WIDTH, W9P3.OFFSCREEN_HEIGHT);
       
         // Attach the texture and the renderbuffer object to the FBO
         gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
@@ -192,18 +192,18 @@ let W9P2 = {
     
 
     draw: (gl, program, o, viewProjMatrix) => {
-        W9P2.initAttributeVariable(gl, program.a_Position, o.vertexBuffer);
+        W9P3.initAttributeVariable(gl, program.a_Position, o.vertexBuffer);
         if (program.a_Color != undefined){
-            W9P2.initAttributeVariable(gl, program.a_Color, o.colorBuffer);
+            W9P3.initAttributeVariable(gl, program.a_Color, o.colorBuffer);
         }
         if (program.a_Texcord != undefined && o.texcordBuffer != undefined ){
-            W9P2.initAttributeVariable(gl, program.a_Texcord, o.texcordBuffer);
+            W9P3.initAttributeVariable(gl, program.a_Texcord, o.texcordBuffer);
         }
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, o.indexBuffer);
       
-        W9P2.g_mvpMatrix.set(viewProjMatrix);
-        W9P2.g_mvpMatrix.multiply(W9P2.g_modelMatrix);
-        gl.uniformMatrix4fv(program.u_MvpMatrix, false, W9P2.g_mvpMatrix.elements);
+        W9P3.g_mvpMatrix.set(viewProjMatrix);
+        W9P3.g_mvpMatrix.multiply(W9P3.g_modelMatrix);
+        gl.uniformMatrix4fv(program.u_MvpMatrix, false, W9P3.g_mvpMatrix.elements);
         gl.drawElements(gl.TRIANGLES, o.numIndices, gl.UNSIGNED_BYTE, 0);
     },
 
@@ -217,12 +217,12 @@ let W9P2 = {
 
     drawQuad: (gl, program, quad, viewProjMatrix) => {
         // Set rotate angle to model matrix and draw plane
-        W9P2.g_modelMatrix.setRotate(W9P2.PLANE_ROT_X, 1, 0, 0);
-        W9P2.g_modelMatrix.rotate(W9P2.PLANE_ROT_Y, 0, 1, 0);
-        W9P2.g_modelMatrix.rotate(W9P2.PLANE_ROT_Z, 0, 0, 1);
+        W9P3.g_modelMatrix.setRotate(W9P3.PLANE_ROT_X, 1, 0, 0);
+        W9P3.g_modelMatrix.rotate(W9P3.PLANE_ROT_Y, 0, 1, 0);
+        W9P3.g_modelMatrix.rotate(W9P3.PLANE_ROT_Z, 0, 0, 1);
 
 
-        W9P2.draw(gl, program, quad, viewProjMatrix);
+        W9P3.draw(gl, program, quad, viewProjMatrix);
     },
 
     initVertexBuffersForQuad: (gl) => {
@@ -258,10 +258,10 @@ let W9P2 = {
         let o = new Object();
       
         // Write vertex information to buffer object
-        o.vertexBuffer = W9P2.initArrayBufferForLaterUse(gl, vertices, 3, gl.FLOAT);
-        o.colorBuffer = W9P2.initArrayBufferForLaterUse(gl, colors, 3, gl.FLOAT);
-        o.indexBuffer = W9P2.initElementArrayBufferForLaterUse(gl, indices, gl.UNSIGNED_BYTE);
-        o.texcordBuffer = W9P2.initArrayBufferForLaterUse(gl, texcords, 2, gl.FLOAT);      
+        o.vertexBuffer = W9P3.initArrayBufferForLaterUse(gl, vertices, 3, gl.FLOAT);
+        o.colorBuffer = W9P3.initArrayBufferForLaterUse(gl, colors, 3, gl.FLOAT);
+        o.indexBuffer = W9P3.initElementArrayBufferForLaterUse(gl, indices, gl.UNSIGNED_BYTE);
+        o.texcordBuffer = W9P3.initArrayBufferForLaterUse(gl, texcords, 2, gl.FLOAT);      
         o.numIndices = indices.length;
       
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
@@ -275,10 +275,10 @@ let W9P2 = {
 
         var o = new Object();
       
-        o.vertexBuffer = W9P2.initArrayBufferForLaterUse(gl, new Float32Array([]), 3, gl.FLOAT);
-        o.colorBuffer = W9P2.initArrayBufferForLaterUse(gl, new Float32Array([]), 3, gl.FLOAT);
-        o.normalBuffer = W9P2.initArrayBufferForLaterUse(gl, new Float32Array([]), 3, gl.FLOAT);
-        o.indexBuffer = W9P2.initElementArrayBufferForLaterUse(gl, new Float32Array([]), gl.UNSIGNED_BYTE);
+        o.vertexBuffer = W9P3.initArrayBufferForLaterUse(gl, new Float32Array([]), 3, gl.FLOAT);
+        o.colorBuffer = W9P3.initArrayBufferForLaterUse(gl, new Float32Array([]), 3, gl.FLOAT);
+        o.normalBuffer = W9P3.initArrayBufferForLaterUse(gl, new Float32Array([]), 3, gl.FLOAT);
+        o.indexBuffer = W9P3.initElementArrayBufferForLaterUse(gl, new Float32Array([]), gl.UNSIGNED_BYTE);
         if (!o.vertexBuffer || !o.colorBuffer || !o.indexBuffer) return null; 
       
         wshelper.readOBJFile('./Stander.obj', gl, o, 0.012, true, (objDoc) => {
@@ -297,9 +297,9 @@ let W9P2 = {
 
 
     drawStander: (gl, program, stander, angle, viewProjMatrix) => {
-        W9P2.g_modelMatrix.setRotate(angle, 0, 1, 0);
-        W9P2.g_modelMatrix.rotate(-90, 1, 0, 0);
-        W9P2.g_modelMatrix.translate(W9P2.STANDER_X + 2,W9P2.STANDER_Y,W9P2.STANDER_Z + 1);
+        W9P3.g_modelMatrix.setRotate(angle, 0, 1, 0);
+        W9P3.g_modelMatrix.rotate(-60, 1, 0, 0);
+        W9P3.g_modelMatrix.translate(W9P3.STANDER_X + 2,W9P3.STANDER_Y,W9P3.STANDER_Z + 1);
         if (!stander.g_drawingInfo && stander.g_objDoc && stander.g_objDoc.isMTLComplete()){
             stander.g_drawingInfo = wshelper.onReadComplete(gl, stander, stander.g_objDoc);
         }
@@ -307,7 +307,7 @@ let W9P2 = {
         if (stander.g_drawingInfo === null || stander.g_drawingInfo === undefined) {
             return;
         } else {
-            W9P2.draw(gl, program, stander, viewProjMatrix);
+            W9P3.draw(gl, program, stander, viewProjMatrix);
         }
 
 
@@ -328,11 +328,11 @@ let W9P2 = {
         gl.enable(gl.DEPTH_TEST);
 
         // Init shaders
-        let shadowProgram = createProgram(gl, W9P2.SHADOW_VSHADER_SOURCE, W9P2.SHADOW_FSHADER_SOURCE);
+        let shadowProgram = createProgram(gl, W9P3.SHADOW_VSHADER_SOURCE, W9P3.SHADOW_FSHADER_SOURCE);
         shadowProgram.a_Position = gl.getAttribLocation(shadowProgram, 'a_Position');
         shadowProgram.u_MvpMatrix = gl.getUniformLocation(shadowProgram, 'u_MvpMatrix');
 
-        let normalProgram = createProgram(gl, W9P2.VSHADER_SOURCE, W9P2.FSHADER_SOURCE);
+        let normalProgram = createProgram(gl, W9P3.VSHADER_SOURCE, W9P3.FSHADER_SOURCE);
         normalProgram.a_Position = gl.getAttribLocation(normalProgram, 'a_Position');
         normalProgram.a_Color = gl.getAttribLocation(normalProgram, 'a_Color');
         normalProgram.a_Texcord = gl.getAttribLocation(normalProgram, 'a_Texcord');
@@ -343,22 +343,22 @@ let W9P2 = {
         normalProgram.u_HasTexture = gl.getUniformLocation(normalProgram, 'u_HasTexture');
 
         // Init vertex info
-        let quad = W9P2.initVertexBuffersForQuad(gl);
-        let stander = W9P2.initVertexBuffersForStander(gl);
+        let quad = W9P3.initVertexBuffersForQuad(gl);
+        let stander = W9P3.initVertexBuffersForStander(gl);
 
 
         // Init FBO
-        let fbo = W9P2.initFramebufferObject(gl);
+        let fbo = W9P3.initFramebufferObject(gl);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, fbo.texture);
 
         // ViewMatrices
-        W9P2.UpdateLightMatrix = () => {
+        W9P3.UpdateLightMatrix = () => {
             viewProjMatrixFromLight = new Matrix4(); 
-            viewProjMatrixFromLight.setPerspective(70.0, W9P2.OFFSCREEN_WIDTH/W9P2.OFFSCREEN_HEIGHT, 1.0, 100.0);
-            viewProjMatrixFromLight.lookAt(W9P2.LIGHT_X, W9P2.LIGHT_Y, W9P2.LIGHT_Z, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+            viewProjMatrixFromLight.setPerspective(70.0, W9P3.OFFSCREEN_WIDTH/W9P3.OFFSCREEN_HEIGHT, 1.0, 100.0);
+            viewProjMatrixFromLight.lookAt(W9P3.LIGHT_X, W9P3.LIGHT_Y, W9P3.LIGHT_Z, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
         }
-        W9P2.UpdateLightMatrix();
+        W9P3.UpdateLightMatrix();
         
         let viewProjMatrix = new Matrix4();          
         viewProjMatrix.setPerspective(45, canvas.width/canvas.height, 1.0, 100.0);
@@ -380,15 +380,15 @@ let W9P2 = {
                 
                 // Set drawing on offscreen framebuffer.
                 gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
-                gl.viewport(0, 0, W9P2.OFFSCREEN_HEIGHT, W9P2.OFFSCREEN_HEIGHT);
+                gl.viewport(0, 0, W9P3.OFFSCREEN_HEIGHT, W9P3.OFFSCREEN_HEIGHT);
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
                 // Draw shadows on framebuffer.
                 gl.useProgram(shadowProgram);
-                W9P2.drawStander(gl, shadowProgram, stander, rotateAngle, viewProjMatrixFromLight);
-                mvpMatrixFromLight_t.set(W9P2.g_mvpMatrix);
-                W9P2.drawQuad(gl, shadowProgram, quad, viewProjMatrixFromLight);
-                mvpMatrixFromLight_p.set(W9P2.g_mvpMatrix);
+                W9P3.drawStander(gl, shadowProgram, stander, rotateAngle, viewProjMatrixFromLight);
+                mvpMatrixFromLight_t.set(W9P3.g_mvpMatrix);
+                W9P3.drawQuad(gl, shadowProgram, quad, viewProjMatrixFromLight);
+                mvpMatrixFromLight_p.set(W9P3.g_mvpMatrix);
 
                 // Set drawing for canvas.
                 gl.bindFramebuffer(gl.FRAMEBUFFER, null); 
@@ -400,11 +400,11 @@ let W9P2 = {
                 // Draw normally:
                 gl.uniformMatrix4fv(normalProgram.u_MvpMatrixFromLight, false, mvpMatrixFromLight_t.elements);
                 gl.uniform1f(normalProgram.u_HasTexture, 0.0);
-                W9P2.drawStander(gl, normalProgram, stander, rotateAngle, viewProjMatrix);
+                W9P3.drawStander(gl, normalProgram, stander, rotateAngle, viewProjMatrix);
                 gl.uniform1i(normalProgram.u_TexMap, 1.0);
                 gl.uniform1f(normalProgram.u_HasTexture, 1.0);
                 gl.uniformMatrix4fv(normalProgram.u_MvpMatrixFromLight, false, mvpMatrixFromLight_p.elements);
-                W9P2.drawQuad(gl, normalProgram, quad, viewProjMatrix);
+                W9P3.drawQuad(gl, normalProgram, quad, viewProjMatrix);
                 
             }, 25);
         }
@@ -415,71 +415,25 @@ let W9P2 = {
     },
 
     hasCanvas: true,
-    header: "Shadow mapping",
+    header: "Shadow comparison",
     description:
-        "Everything from the worksheet ie. tips, material, and instructions were very hard to parse. "+
-        "Therefor the best guess is implemented with a lot of inspiration from the picture and Display shadows section of WebGL programming guide.\n\n"+
-        "Like in part 1, 2 pairs of fragment and vertex shaders are constructed, in this part there is one for shadows and one for regular drawing. "+
-        "Functions are constructed to help initialize the models the quad and stander: ```initVertexBuffersForQuad``` and ```initVertexBuffersForStander```. "+
-        "Additionally, functions for drawing the quad and stander object are also written for better readability, ```drawQuad``` and ```drawStander```. "+
-        "\n#### Shadows mapped in offscreen buffer\n\n"+
-        "The main and new difference from part 1 is the way shadows are handled. In this case, the quad and ground are psudo drawn onto a offscreen buffer with the perspective of the light source. "+
-        "By drawing the quad and stander from the perspective of the light source, the depths buffer is populated naturally from the light source, ie. the correct manner. "+
-        "This offscreen framebuffer then be utilized as depths lookup from the perspective of the light source in the form of a texture lookup later. " +
-        "##### Framebuffer initialization\n"+
-        "The framebuffer is initialized and bound to texture 0 such that when drawn to, it will be drawn to texture 0 for later lookup.\n" +
-        "```javascript\n"+
-        "// Init FBO\n"+
-        "let fbo = W9P2.initFramebufferObject(gl);\n"+
-        "gl.activeTexture(gl.TEXTURE0);\n"+
-        "gl.bindTexture(gl.TEXTURE_2D, fbo.texture);\n"+
-        "```\n"+
-        "##### Shadows are mapped\n"+
-        "Shadows are then mapped to the offscreen buffer, by binding the framebuffer and then drawing the quad and the stander with the a viewmodel (Camera/Eye) that is from the perspective of the light source. "+
-        "Consequently, populating the texture with depths coordinates etc. \n"+
-        "```javascript\n"+
-        "// Set drawing on offscreen framebuffer.\n"+
-        "gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);\n"+
-        "gl.viewport(0, 0, W9P2.OFFSCREEN_HEIGHT, W9P2.OFFSCREEN_HEIGHT);\n"+
-        "gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);\n"+
-        "\n"+
-        "// Draw shadows on framebuffer.\n"+
-        "gl.useProgram(shadowProgram);\n"+
-        "W9P2.drawStander(gl, shadowProgram, stander, rotateAngle, viewProjMatrixFromLight);\n"+
-        "mvpMatrixFromLight_t.set(W9P2.g_mvpMatrix);\n"+
-        "W9P2.drawQuad(gl, shadowProgram, quad, viewProjMatrixFromLight);\n"+
-        "mvpMatrixFromLight_p.set(W9P2.g_mvpMatrix);\n"+
-        "```\n"+
-        "Very importantly, for the shadow program, the depths stored as red in the shader.\n"+
-        "```\n"+
-        "gl_FragColor = vec4(gl_FragCoord.z, 0.0, 0.0, 0.0);\n"+
-        "```\n"+
-        "After this, the framebuffer is then set to NULL and normal drawing program is used as to set it back to the regular canvas drawing.\n"+
-        "```javascript\n"+
-        "// Set drawing for canvas.\n"+
-        "gl.bindFramebuffer(gl.FRAMEBUFFER, null);\n"+ 
-        "gl.viewport(0, 0, canvas.width, canvas.height);\n"+
-        "gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);\n"+
-        "gl.useProgram(normalProgram);\n"+
-        "gl.uniform1i(normalProgram.u_ShadowMap, 0);\n"+
-        "```\n"+
-        "##### Regular drawing, with shadow lookup\n"+
-        "As previously mentioned, the shadows were stored as red in the shadow map, therefor the depth can be looked up in the texturemap with following in the shader:\n"+
-        "```\n"+        
-        "vec4 rgbaDepth = texture2D(u_ShadowMap, shadowCoord.xy);\n"+
-        "float depth = rgbaDepth.r;\n"+
-        "float visibility = (shadowCoord.z > depth + 0.005) ? 0.7 : 1.0;\n" +
-        "```\n"+
-        "Using the shadow lookup, a visibility factor can be derived. \n"+
-        "This visibility factor essentially determines whether the current vertex is behind something or not with the perspective of the light source. "+
-        "The visibility factor will be 0.7 when the vertex is determined behind something else, and can therefor be used to dim the color to match ambient light instead of pure black. \n" +
-        "```\n"+
-        "if (u_HasTexture == 1.0) {\n"+
-        "\t gl_FragColor = vec4(texture2D(u_TexMap, v_Texcord).rgb * visibility, v_Color.a);\n"+
-        "} else {\n"+
-        "\tgl_FragColor = vec4(v_Color.rgb * visibility, v_Color.a);\n" +
-        "}  \n"+
-        "```\n"
+        "## Shadow projection\n"+
+        "Part 1 of this worksheet demonstrates shadow projection.\n"+
+        "#### Pros\n"+
+        "- Only needs to draw additional polygons, this is fairly efficient. \n"+
+        "- Shadow polygons can be drawn within the same shader.\n"+
+        "#### Cons\n"+
+        "- Shadow polygons are alright to create for a flat surface, but will be complex if shadows are casted on a non flat surface.\n"+
+        "- For the part 1 shadow projections, it is assumed that shadow polygons are only casted on a flat surface. \n"+
+        "- The shadows produced by the shadow polygons do not support self shadowing. \n"+
+        "## Shadow mapping\n"+
+        "Part 2 and 3 of this worksheet demonstrates shadow projection.\n"+
+        "#### Pros\n"+
+        "- Shadows are easily cast on any type of surface, flat or deformed. \n"+
+        "- It is easy to scale for multiple light sources, as each light source could produce a shadow map to be used later.\n"+
+        "- Self shadowing is supported (The object is slighty tilted compared to part 2 to showcase this). \n"+
+        "#### Cons\n"+
+        "- Drawing to an offscreen buffer require a lot of additional computing power, as the scene is essentially drawn twice. One for mapping shadows, and lastly for drawing the scene. \n"
         ,
 } 
 

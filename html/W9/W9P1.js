@@ -223,7 +223,6 @@ let W9P1 = {
                 program.g_drawingInfo = wshelper.onReadComplete(gl, program.model, program.g_objDoc);
             }
             if (program.g_drawingInfo === null || program.g_drawingInfo === undefined) {
-                console.log("Drawing info was false");
                 return;
             }
 

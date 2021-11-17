@@ -57,7 +57,6 @@ let W8P1 = {
         let Quad2 = [vec3(-1,-1,-2.5),vec3(-1,0,-2.5), vec3(-1,-1,-3), vec3(-1,0,-3)];
         let vertices = [...GroundQuad, ...Quad1, ...Quad2];
         let bufferData = flatten(vertices);
-        console.log(bufferData);
         gl.vBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, gl.vBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, bufferData, gl.STATIC_DRAW);
