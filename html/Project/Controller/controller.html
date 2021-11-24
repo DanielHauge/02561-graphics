@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="author" content="Daniel F. Hauge">
+    <meta name="theme-color" content="#000000" />
+    <link rel="icon" href="../images/favicon.ico" />
+    <title>Project - 02561 Computer Graphics - Daniel F. Hauge s201186</title>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css"
+        integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+    <link rel="stylesheet" href="../css/bootstrap4-neon-glow.min.css">
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+    <link rel='stylesheet' href='//cdn.jsdelivr.net/font-hack/2.020/css/hack.min.css'>
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/styles/atom-one-dark.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/markdown-it-texmath/css/texmath.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.18/dist/katex.min.css"
+        integrity="sha384-zTROYFVGOfTw7JV7KUu8udsvW2fx4lWOsCEDqhBreBwlHI4ioVRtmIvEThzJHGET" crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/highlight.min.js"></script>
+    <script src="https://code.createjs.com/1.0.0/createjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.5.1/gsap.min.js"></script>
+    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="./Project/project.js"></script>
+    <script src="./Project/websockets.js"></script>
+
+
+</head>
+
+<body>
+    <div class="container py-1 mb5">
+        <h1 class="display-3 text-center">Project: Smartphone driven graphics</h1>
+        <h3 class="lead mb-3 text-mono text-center" id="connection-status"></h3>
+        <h3 hidden class="lead mb-3 text-mono text-success text-center" id="sensor-success"> Sensor started </h3>
+        <h3 hidden class="lead mb-3 text-mono text-danger text-center" id="sensor-error"> Error </h3>
+        <div class="text-center">
+            <a id="controller-init" class="btn btn-success btn-shadow px-3 my-0 ml-3 text-left display-3 text-center"> Start sensors </a>
+        </div>
+
+        <p hidden id="sensor-info-acc-label">Acceleration</p>
+        <p class="lead text-mono text-info" id="sensor-info-acc-x"></p>
+        <p class="lead text-mono text-info" id="sensor-info-acc-y"></p>
+        <p class="lead text-mono text-info" id="sensor-info-acc-z"></p>
+
+        <p hidden id="sensor-info-ori-label">Orientation (Quaternion)</p>
+        <p class="lead text-mono text-info" id="sensor-info-ori-x"></p>
+        <p class="lead text-mono text-info" id="sensor-info-ori-y"></p>
+        <p class="lead text-mono text-info" id="sensor-info-ori-z"></p>
+        <p class="lead text-mono text-info" id="sensor-info-ori-w"></p>
+        
+    </div>
+
+    <script>
+        window.onload = ProjectSockets.connectWebsockets();
+    </script>
+</body>
+
+</html>
