@@ -13,4 +13,4 @@ COPY --from=build-stage /go/workdir/dtu-computer-graphics /go/workdir/dtu-comput
 COPY --from=build-stage /go/workdir/html /go/workdir/html
 EXPOSE 443
 EXPOSE 80
-ENTRYPOINt ["./dtu-computer-graphics"]
+ENTRYPOINT ["./dtu-computer-graphics"]

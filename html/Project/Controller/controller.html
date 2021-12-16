@@ -23,8 +23,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.5.1/gsap.min.js"></script>
     <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="../Common/cuon-matrix.js"></script>
+    <script src="../Common/cuon-utils.js"></script>
+    <script src="../Common/quaternion.js"></script>
     <script src="./Project/project.js"></script>
     <script src="./Project/websockets.js"></script>
+    <script src="./Project/initFunc.js"></script>
 
 
 </head>
@@ -37,6 +41,7 @@
         <h3 hidden class="lead mb-3 text-mono text-danger text-center" id="sensor-error"> Error </h3>
         <div class="text-center">
             <a id="controller-init" class="btn btn-success btn-shadow px-3 my-0 ml-3 text-left display-3 text-center"> Start sensors </a>
+            <a id="controller-reset" class="btn btn-success btn-shadow px-3 my-0 ml-3 text-left display-3 text-center"> Realign </a>
         </div>
 
         <p hidden id="sensor-info-acc-label">Acceleration</p>

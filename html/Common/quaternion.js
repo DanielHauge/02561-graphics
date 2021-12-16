@@ -164,8 +164,12 @@ Quaternion.prototype.invert = function () {
  */
 Quaternion.prototype.make_rot_angle_axis = function (angle, vec) {
   var e = this.elements;
-  var v = normalize(vec)*Math.sin(angle);
-  e[0] = v[0]; e[1] = v[1]; e[2] = v[2]; e[3] = Math.cos(angle / 2);
+  var sin_angle_half = Math.sin(angle*0.5);
+  var v = normalize(vec);
+  e[0] = v[0]*sin_angle_half;
+  e[1] = v[1]*sin_angle_half;
+  e[2] = v[2]*sin_angle_half;
+  e[3] = Math.cos(angle*0.5);
   return this;
 }
 
@@ -183,4 +187,37 @@ Quaternion.prototype.make_rot_vec2vec = function (a, b) {
   e[2] = (a[0] * b[1] - a[1] * b[0]) / tmp;
   e[3] = tmp / 2;
   return this;
+}
+
+/**
+ * Make a rotation 3x3 matrix corresponding to this quaternion.
+ * @return mat3
+ */
+Quaternion.prototype.get_mat3 = function() {
+  var s = 2.0/Math.sqrt(this.sqr_norm());
+  var e = this.elements;
+  var qv_qv = vec3(e[0]*e[0], e[1]*e[1], e[2]*e[2]);
+  var qv_qw = vec3(e[0]*e[3], e[1]*e[3], e[2]*e[3]);
+  // note that the all q_*q_ are used twice (optimize)
+  var R = mat3(1 - s*(qv_qv[1] + qv_qv[2]), s*(e[0]*e[1] - qv_qw[2]), s*(e[0]*e[2] + qv_qw[1]),
+               s*(e[0]*e[1] + qv_qw[2]), 1 - s*(qv_qv[0] + qv_qv[2]), s*(e[1]*e[2] - qv_qw[0]),
+               s*(e[0]*e[2] - qv_qw[1]), s*(e[1]*e[2] + qv_qw[0]), 1 - s*(qv_qv[0] + qv_qv[1]));
+  return R;
+}
+
+/**
+ * Make a rotation 4x4 matrix corresponding to this quaternion.
+ * @return mat4
+ */
+Quaternion.prototype.get_mat4 = function() {
+  var s = 2.0/Math.sqrt(this.sqr_norm());
+  var e = this.elements;
+  var qv_qv = vec3(e[0]*e[0], e[1]*e[1], e[2]*e[2]);
+  var qv_qw = vec3(e[0]*e[3], e[1]*e[3], e[2]*e[3]);
+  // note that the all q_*q_ are used twice (optimize)
+  var R = mat4(1 - s*(qv_qv[1] + qv_qv[2]), s*(e[0]*e[1] - qv_qw[2]), s*(e[0]*e[2] + qv_qw[1]), 0,
+               s*(e[0]*e[1] + qv_qw[2]), 1 - s*(qv_qv[0] + qv_qv[2]), s*(e[1]*e[2] - qv_qw[0]), 0,
+               s*(e[0]*e[2] - qv_qw[1]), s*(e[1]*e[2] + qv_qw[0]), 1 - s*(qv_qv[0] + qv_qv[1]), 0,
+               0, 0, 0, 1);
+  return R;
 }

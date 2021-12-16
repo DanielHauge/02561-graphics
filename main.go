@@ -12,21 +12,21 @@ import (
 var (
 	connections map[string]string
 	observer    map[string]bool
+	listener    map[string]bool
 )
 
 func main() {
 	connections = make(map[string]string)
 	observer = make(map[string]bool)
+	listener = make(map[string]bool)
 	http.Handle("/", cors.Default().Handler(http.FileServer(http.Dir("html/"))))
 	http.HandleFunc("/c", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "html/Project/Controller/controller.html")
 	})
 	http.Handle("/socket.io/", initWS())
-	log.Println("Serving at localhost:80")
+	log.Println("Serving at http://localhost:80 and https://localhost:443")
 	go log.Fatal(http.ListenAndServeTLS(":443", "Certs/server.crt", "Certs/server.key", nil))
-
 	log.Fatal(http.ListenAndServe(":80", nil))
-
 }
 
 type Event struct {
@@ -46,13 +46,14 @@ func initWS() *gosocketio.Server {
 	})
 
 	server.On("init-observer", func(c *gosocketio.Channel, msg string) string {
+		listener[msg] = true
 		c.Join(msg)
 		return "OK"
 	})
 
 	server.On("event", func(c *gosocketio.Channel, msg Event) string {
 		if msg.EventType == "connection" {
-			if observer[msg.SessionId] {
+			if observer[msg.SessionId] || !listener[msg.SessionId] {
 				return "BAD"
 			} else {
 				observer[msg.SessionId] = true

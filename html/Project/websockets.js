@@ -2,12 +2,13 @@ const ProjectSockets = {
 
     OnAccelerationRead: null,
     OnOrientationRead: null,
+    OnAlign: null,
     Socket: null,
 
     makeObserverId: () => {
         var result = '';
-        var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        for (var i = 0; i < 4; i++) {
+        var characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
+        for (var i = 0; i < 3; i++) {
             result += characters.charAt(Math.floor(Math.random() * characters.length));
         }
         return result;
@@ -17,7 +18,7 @@ const ProjectSockets = {
         const sensorError = document.getElementById("sensor-error");
         sensorError.innerHTML = msg;
         sensorError.hidden = true;
-        console.error(error.error.message);
+        console.error(msg);
     },
 
     connectWebsockets: () => {
@@ -34,11 +35,13 @@ const ProjectSockets = {
             }
         }
 
-        Project.Socket = io({ transports: ['websocket'] });
+        ProjectSockets.Socket = io({ transports: ['websocket'] });
         const urlParams = new URLSearchParams(window.location.search);
         const connectionId = urlParams.get('id');
 
-        Project.Socket.emit("event", { id: connectionId, type: "connection", value: "null" }, (result => {
+        console.log(connectionId)
+        ProjectSockets.Socket.emit("event", { id: connectionId, type: "connection", value: "null" }, (result => {
+            console.log(result);
             if (result == "OK" && connectionId != null) {
                 changeConLabel("Connected to: " + connectionId, true);
             } else {
@@ -48,24 +51,42 @@ const ProjectSockets = {
 
         let orientationSensor = null;
         let accelerationSensor = null;
+        ProjectSockets.errorFunc = ProjectSockets.error;
+        ProjectSockets.Socket.emit("event", { id:connectionId, type: "error", value: "init"})
+        document.getElementById("controller-reset").addEventListener("click", ev => {
+            ProjectSockets.Socket.emit("event", { id:connectionId, type: "error", value: "reset"})
+            try {
+                if (orientationSensor !== null){
+                    ProjectSockets.Socket.emit("event", { id:connectionId, type: "error", value: "test"})
+                    ProjectSockets.Socket.emit("event", { id:connectionId, type: "align", value: JSON.stringify(orientationSensor.quaternion)});
+                } else{
+                    ProjectSockets.Socket.emit("event", { id:connectionId, type: "align", value: "null"});
+                }
+            } catch (error) {
+                ProjectSockets.Socket.errorFunc(error)
+            }
+            
+        })
 
         document.getElementById("controller-init").addEventListener("click", ev => {
             try {
+                // orientationSensor = new AbsoluteOrientationSensor({ frequency: 60 });
                 orientationSensor = new AbsoluteOrientationSensor({ frequency: 60, referenceFrame: 'device' });
+                // orientationSensor = new RelativeOrientationSensor({ frequency: 60 });
+
                 orientationSensor.addEventListener('error', error => {
                     if (error.name == 'NotReadableError') {
                         ProjectSockets.errorFunc("Sensor not available");
                     } else{
-                        ProjectSockets.errorFunc(error.name);
+                        ProjectSockets.errorFunc(error.error.message);
                     }
                 });
                 orientationSensor.addEventListener('reading', ev => {
-                    // model is a Three.js object instantiated elsewhere.
                     document.getElementById("sensor-info-ori-x").innerHTML = "x: " + orientationSensor.quaternion[0]
                     document.getElementById("sensor-info-ori-y").innerHTML = "y: " + orientationSensor.quaternion[1]
                     document.getElementById("sensor-info-ori-z").innerHTML = "z: " + orientationSensor.quaternion[2]
                     document.getElementById("sensor-info-ori-w").innerHTML = "w: " + orientationSensor.quaternion[3]
-                    Project.Socket.emit("event", { id: connectionId, type: "orientation", value: JSON.stringify(orientationSensor.quaternion)})
+                    ProjectSockets.Socket.emit("event", { id: connectionId, type: "orientation", value: JSON.stringify(orientationSensor.quaternion)})
                 });
 
                 accelerationSensor = new LinearAccelerationSensor({frequency: 60});
@@ -73,7 +94,7 @@ const ProjectSockets = {
                     if (error.name == 'NotReadableError') {
                         ProjectSockets.errorFunc("Sensor not available");
                     } else{
-                        ProjectSockets.errorFunc(error.name);
+                        ProjectSockets.errorFunc(error.error.message);
                     }
                 })
 
@@ -82,13 +103,14 @@ const ProjectSockets = {
                     document.getElementById("sensor-info-acc-y").innerHTML = "y: " + accelerationSensor.y;
                     document.getElementById("sensor-info-acc-z").innerHTML = "z: " + accelerationSensor.z;
                     const acceleration = {x:accelerationSensor.x, y:accelerationSensor.y, z:accelerationSensor.z};
-                    Project.Socket.emit("event", { id: connectionId, type: "acceleration", value: JSON.stringify(acceleration)});
+                    ProjectSockets.Socket.emit("event", { id: connectionId, type: "acceleration", value: JSON.stringify(acceleration)});
                   });
                 
                 orientationSensor.start();
                 accelerationSensor.start();
                 document.getElementById("sensor-success").hidden = false;
                 document.getElementById("controller-init").hidden = true;
+                document.getElementById("controller-reset").hidden = false;
                 document.getElementById("sensor-info-ori-label").hidden = false;
                 document.getElementById("sensor-info-ori-x").hidden = false;
                 document.getElementById("sensor-info-ori-y").hidden = false;
@@ -105,7 +127,7 @@ const ProjectSockets = {
                 } else if (error.name === "SecurityError"){
                     ProjectSockets.errorFunc("Sensor construction was blocked by a feature policy.");
                 } else{
-                    ProjectSockets.errorFunc(error.name);
+                    ProjectSockets.errorFunc(error);
                 }
                 ev.target.hidden = true;
             }
@@ -116,34 +138,50 @@ const ProjectSockets = {
     },
 
     initWebsockets: () => {
-        Project.Socket = io({ transports: ['websocket'] });
+        ProjectSockets.Socket = io({ transports: ['websocket'] });
         const observerId = ProjectSockets.makeObserverId();
-        Project.Socket.emit("init-observer", observerId);
+        ProjectSockets.Socket.emit("init-observer", observerId);
         const link = document.getElementById("connection-link");
         link.href = "../c?id=" + observerId;
         link.innerHTML = "grafik.feveile-hauge.dk/c?id=" + observerId;
 
-        Project.Socket.on("connection", () => {
+        ProjectSockets.Socket.on("connection", () => {
             document.getElementById("connection-status").innerHTML = "Connected to phone";
         });
 
-        Project.Socket.on("disconnection", () => {
+        ProjectSockets.Socket.on("disconnection", () => {
             document.getElementById("connection-status").innerHTML = "No connections";
         });
 
-        Project.Socket.on("orientation", orientationArray => {
+        ProjectSockets.Socket.on("orientation", orientationArray => {
             let quaternion = JSON.parse(orientationArray);
             if (ProjectSockets.OnOrientationRead != null){
                 ProjectSockets.OnOrientationRead(quaternion);
             }
         });
 
-        Project.Socket.on("acceleration", acc => {
+        ProjectSockets.Socket.on("acceleration", acc => {
             let acceleration = JSON.parse(acc);
             if (ProjectSockets.OnAccelerationRead != null){
                 ProjectSockets.OnAccelerationRead(acceleration);
             }
         });
+
+        ProjectSockets.Socket.on("align", acc => {
+            if (acc === "null"){
+                console.error("Cannot align before sensors are started");
+                return;
+            }
+            let align = JSON.parse(acc);
+            console.log("hygge");
+            if (ProjectSockets.OnAlign != null){
+                ProjectSockets.OnAlign(align);
+            }
+        })
+
+        ProjectSockets.Socket.on("error", err => {
+            console.log(err);
+        })
 
     },
 }

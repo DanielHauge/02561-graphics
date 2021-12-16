@@ -22,8 +22,12 @@
     <script src="https://code.createjs.com/1.0.0/createjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.5.1/gsap.min.js"></script>
     <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
-    <script type="text/javascript" src="project.js"></script>
+    <script src="../Common/cuon-matrix.js"></script>
+    <script src="../Common/cuon-utils.js"></script>
+    <script src="../Common/quaternion.js"></script>
+    <script type="text/javascript" src="initFunc.js"></script>
     <script type="text/javascript" src="websockets.js"></script>
+    <script type="text/javascript" src="project.js"></script>
 
 
 </head>
@@ -78,26 +82,26 @@
           </div>
     </div>
 
-    <script type="text/javascript" src="../Common/initShaders.js"></script>
-    <script type="text/javascript" src="../Common/MV.js"></script>
-    <script type="text/javascript" src="../Common/webgl-utils.js"></script>
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
-        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
-        crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
-        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
-        crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
-        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
-        crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/markdown-it/12.2.0/markdown-it.min.js"></script>
-    <script type="text/javascript" src="../Common/markdown-it-math.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/markdown-it-texmath/texmath.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.13.18/dist/katex.min.js"
-        integrity="sha384-GxNFqL3r9uRJQhR+47eDxuPoNE7yLftQM8LcxzgS4HT73tp970WS/wV5p8UzCOmb"
-        crossorigin="anonymous"></script>
-    <script id="vertex-shader" type="x-shader/x-vertex">  </script>
-    <script id="fragment-shader" type="x-shader/x-fragment">  </script>
+    <script type="text/javascript" src="../Common/initShaders.js" ></script>
+  <script type="text/javascript" src="../Common/MV.js" ></script>
+  <script type="text/javascript" src="../Common/webgl-utils.js" ></script>
+  <script type="text/javascript" src="../Common/OBJParser.js" ></script>
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/markdown-it/12.2.0/markdown-it.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/markdown-it-texmath/texmath.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.13.18/dist/katex.min.js" integrity="sha384-GxNFqL3r9uRJQhR+47eDxuPoNE7yLftQM8LcxzgS4HT73tp970WS/wV5p8UzCOmb" crossorigin="anonymous"></script>
+    <!-- <script defer src="https://cdn.jsdelivr.net/npm/katex@0.13.18/dist/contrib/auto-render.min.js" integrity="sha384-vZTG03m+2yp6N6BNi5iM4rW4oIwk5DfcNdFfxkk9ZWpDriOkXX8voJBFrAO7MpVl" crossorigin="anonymous"
+        onload="renderMathInElement(document.body);"></script> -->
+
+  <script id="object-vertex-shader" type="x-shader/x-vertex">  </script>
+  <script id="object-fragment-shader" type="x-shader/x-fragment">  </script>
+  <script id="ground-vertex-shader" type="x-shader/x-vertex">  </script>
+  <script id="ground-fragment-shader" type="x-shader/x-fragment">  </script>
+  <script id="shadow-vertex-shader" type="x-shader/x-vertex">  </script>
+  <script id="shadow-fragment-shader" type="x-shader/x-fragment">  </script>
+  <script type="text/javascript" src="../worksheet.js" ></script>
     <script>
         window.onload = Project.init();
     </script>
