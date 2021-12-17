@@ -43,7 +43,7 @@ let Project = {
         '  if (u_HasTexture == 1.0) {\n' +
         '       gl_FragColor = vec4(texture2D(u_TexMap, v_Texcord).rgb * visibility, v_Color.a);\n' +
         '  } else {\n' +
-        '       gl_FragColor = vec4(v_Color.rgb * visibility, v_Color.a);\n' +
+        '       gl_FragColor = vec4(v_Color.rgb * visibility * 0.4, v_Color.a);\n' +
         '  }  \n' +
         '}\n',
 
@@ -55,7 +55,7 @@ let Project = {
     drawPhone: (gl, program, phone, viewProjMatrix) => {
         
         Project.g_modelMatrix.setRotate(-90, 1, 0, 0);
-        Project.g_modelMatrix.rotate(90, 0, 0, 1);
+        Project.g_modelMatrix.rotate(90 + (Project.q_rot_ref.elements[2]*(90)), 0, 0, 1);
 
         Project.g_modelMatrix.translate(Project.Phone_X,Project.Phone_Y,Project.Phone_Z);
         
@@ -67,7 +67,7 @@ let Project = {
 
         
         Project.g_modelMatrix = Project.g_modelMatrix.multiply(rot);
-        Project.g_modelMatrix.rotate(-90, 0, 0, 1);
+        Project.g_modelMatrix.rotate(-90 - (Project.q_rot_ref.elements[2]*(90)), 0, 0, 1);
         Project.g_modelMatrix.translate(0.8,0.4,0);
 
         // Project.g_modelMatrix.rotate(-90, 1, 0, 0);
@@ -187,8 +187,11 @@ let Project = {
             let e = Project.q_dollyPan.elements;
             let p = new Vector3([0,0,0]).elements;
             let c = new Vector3([p[0] - r[0] * e[1] - u[0] * e[2], p[1] - r[1] * e[1] - u[1] * e[2], p[2] - r[2] * e[1] - u[2] * e[2]]).elements;
-            let qrotEye = qrot.apply(vec3( e[0],1.0, 0));
-            viewProjMatrix.lookAt(qrotEye[0] + c[0], qrotEye[1] + c[1], qrotEye[2] + c[2], c[0], c[1], c[2], u[0], u[1], u[2]);
+            let angleDegrees = (((Project.q_rot_ref.elements[2]+1)/2) * 360 - 180) % 360; // Angle normalized to range: 0 -> 360
+            let radian = angleDegrees/180 * Math.PI;
+            // viewProjMatrix.lookAt(Math.cos(radian)* e[0], 1, Math.sin(radian)*e[0], 0,0,0, 0, 1, 0);
+            viewProjMatrix.lookAt(4, 1, 0, 0,0,0, 0, 1, 0);
+
         }
         Project.UpdateViewMatrix();
         
@@ -210,6 +213,7 @@ let Project = {
             const newOri = [ori[0], ori[1], ori[2], ori[3]]
             Project.q_rot_ref.set(newOri);
             Project.q_rot_ref = Project.q_rot_ref.invert();
+            Project.UpdateViewMatrix();
         }
 
         ProjectSockets.OnOrientationRead = ori => {

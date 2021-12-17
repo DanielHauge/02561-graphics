@@ -71,8 +71,8 @@ const ProjectSockets = {
         document.getElementById("controller-init").addEventListener("click", ev => {
             try {
                 // orientationSensor = new AbsoluteOrientationSensor({ frequency: 60 });
-                orientationSensor = new AbsoluteOrientationSensor({ frequency: 60, referenceFrame: 'device' });
-                // orientationSensor = new RelativeOrientationSensor({ frequency: 60 });
+                // orientationSensor = new AbsoluteOrientationSensor({ frequency: 60, referenceFrame: 'device' });
+                orientationSensor = new RelativeOrientationSensor({ frequency: 60 });
 
                 orientationSensor.addEventListener('error', error => {
                     if (error.name == 'NotReadableError') {
