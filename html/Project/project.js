@@ -51,42 +51,29 @@ let Project = {
     Phone_X: 0.7,
     Phone_Y: 0.35,
     Phone_Z: -0.35,
+    PD: {x:0,y:0, z:0},
 
     drawPhone: (gl, program, phone, viewProjMatrix) => {
-        
         Project.g_modelMatrix.setRotate(-90, 1, 0, 0);
         Project.g_modelMatrix.rotate(90 + (Project.q_rot_ref.elements[2]*(90)), 0, 0, 1);
-
-        Project.g_modelMatrix.translate(Project.Phone_X,Project.Phone_Y,Project.Phone_Z);
-        
+        Project.g_modelMatrix.translate(Project.Phone_X + Project.PD.x,Project.Phone_Y + Project.PD.y,Project.Phone_Z + Project.PD.z);
         const rot = new Matrix4();
         const mat4 = Project.q_rot.get_mat4();
         const flattened = flatten(mat4);
-
         rot.set({elements: flattened});
 
-        
         Project.g_modelMatrix = Project.g_modelMatrix.multiply(rot);
         Project.g_modelMatrix.rotate(-90 - (Project.q_rot_ref.elements[2]*(90)), 0, 0, 1);
         Project.g_modelMatrix.translate(0.8,0.4,0);
 
-        // Project.g_modelMatrix.rotate(-90, 1, 0, 0);
-        // Project.g_modelMatrix.rotate(180, 0, 1, 0);
-
-
-
-
-
         if (!phone.g_drawingInfo && phone.g_objDoc && phone.g_objDoc.isMTLComplete()){
             phone.g_drawingInfo = wshelper.onReadComplete(gl, phone, phone.g_objDoc);
         }
-
         if (phone.g_drawingInfo === null || phone.g_drawingInfo === undefined) {
             return;
         } else {
             Project.draw(gl, program, phone, viewProjMatrix);
         }
-
 
     },
 
@@ -112,6 +99,9 @@ let Project = {
     q_dollyPan: new Vector3([4, 0, 0]),
     q_pan_X: 0,
     q_pan_Y: 0,
+    LIGHT_X: 0, 
+    LIGHT_Y: 0, 
+    LIGHT_Z: 0,
     
 
     draw: (gl, program, o, viewProjMatrix) => {
@@ -156,7 +146,6 @@ let Project = {
         normalProgram.u_ShadowMap = gl.getUniformLocation(normalProgram, 'u_ShadowMap');
         normalProgram.u_TexMap = gl.getUniformLocation(normalProgram, 'u_TexMap');
         normalProgram.u_HasTexture = gl.getUniformLocation(normalProgram, 'u_HasTexture');
-
         gl.useProgram(normalProgram);
 
         // Init vertex info
@@ -174,10 +163,9 @@ let Project = {
             Project.viewProjMatrixFromLight.setPerspective(90.0, ProjectInit.OFFSCREEN_WIDTH/ProjectInit.OFFSCREEN_HEIGHT, 1.0, 100.0);
             Project.viewProjMatrixFromLight.lookAt(Project.LIGHT_X, Project.LIGHT_Y, Project.LIGHT_Z, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
         }
-
         Project.UpdateLightMatrix();
-        let viewProjMatrix = new Matrix4(); 
 
+        let viewProjMatrix = new Matrix4(); 
         Project.UpdateViewMatrix = () => {
             viewProjMatrix = new Matrix4();
             viewProjMatrix.setPerspective(90, canvas.width/canvas.height, 1.0, 100.0);
@@ -190,35 +178,50 @@ let Project = {
             let angleDegrees = (((Project.q_rot_ref.elements[2]+1)/2) * 360 - 180) % 360; // Angle normalized to range: 0 -> 360
             let radian = angleDegrees/180 * Math.PI;
             // viewProjMatrix.lookAt(Math.cos(radian)* e[0], 1, Math.sin(radian)*e[0], 0,0,0, 0, 1, 0);
+            // No longer rotates in eye space.
             viewProjMatrix.lookAt(4, 1, 0, 0,0,0, 0, 1, 0);
 
         }
         Project.UpdateViewMatrix();
         
-
-        let mvpMatrixFromLight_t = new Matrix4();
-        let mvpMatrixFromLight_p = new Matrix4();
-
-
-
-        const Position = {x:0, y:0, z:0};
-        ProjectSockets.OnAccelerationRead = acc => {
-            Position.x = Position.x + acc.x*0.01;
-            Position.y = Position.y + acc.y*0.01;
-            Position.z = Position.z + acc.z*0.01;
+        // Failed attempt at displacement with acceleration.
+        const Displacement = {x:0, y:0, z:0};
+        const Velocity = {x:0, y:0, z:0};
+        const DeltaT = 1/15;
+        ProjectSockets.OnAccelerationRead = Acceleration => {
+            const vX = Velocity.x + Acceleration.x * DeltaT
+            const vY = Velocity.y + Acceleration.y * DeltaT
+            const vZ = Velocity.z + Acceleration.z * DeltaT
+            Displacement.x = 0.5 * (vX + Velocity.x) * DeltaT
+            Displacement.y = 0.5 * (vY + Velocity.y) * DeltaT
+            Displacement.z = 0.5 * (vZ + Velocity.z) * DeltaT
+            Velocity.x = vX * 0.5; // Times 0.5 to decay
+            Velocity.y = vY * 0.5; // Times 0.5 to decay
+            Velocity.z = vZ * 0.5; // Times 0.5 to decay
+            // Project.PD.x =  Displacement.x;
+            // Project.PD.y =  Displacement.y;
+            // Project.PD.z =  Displacement.z;
+            // console.log("Acceleration", Acceleration)
+            // console.log("XYZ: ", Project.PD);
+            // console.log("Velocity: ", Velocity);
         }
 
+        // Reallign object for screen perspective.
         ProjectSockets.OnAlign = ori => {
             console.log("newAlign");
             const newOri = [ori[0], ori[1], ori[2], ori[3]]
             Project.q_rot_ref.set(newOri);
             Project.q_rot_ref = Project.q_rot_ref.invert();
             Project.UpdateViewMatrix();
+            Project.PD.x = 0;
+            Project.PD.y = 0;
+            Project.PD.z = 0;
         }
 
+        // New orientation of the object.
         ProjectSockets.OnOrientationRead = ori => {
             const newOri = [ori[0], ori[1], ori[2], ori[3]]
-            if (Project.refSet == undefined) {
+            if (Project.refSet == undefined) { // Set first object reference.
                 Project.refSet = true;
                 Project.q_rot_ref.set(newOri);
                 Project.q_rot_ref = Project.q_rot_ref.invert();
@@ -226,17 +229,11 @@ let Project = {
             }
             Project.q_rot.set(newOri);
             Project.q_rot.multiply(Project.q_rot_ref);
-            // model.quaternion.fromArray(sensor.quaternion).inverse();
         }
-
-
 
         function render() {
             setTimeout(function () {
                 requestAnimationFrame(render);
-                // let baseRot = new Quaternion().set(Project.q_rot);
-                // Project.q_rot = baseRot.multiply(Project.q_inc);
-                // Project.UpdateViewMatrix();
 
                 // Set drawing on offscreen framebuffer.
                 gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
@@ -244,6 +241,7 @@ let Project = {
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
                 // Draw shadows on framebuffer.
+                gl.useProgram(shadowProgram);
                 Project.drawPhone(gl, shadowProgram, phone, Project.viewProjMatrixFromLight);
                 mvpMatrixFromLight_t.set(Project.g_mvpMatrix);
                 Project.drawQuad(gl, shadowProgram, quad, Project.viewProjMatrixFromLight);
