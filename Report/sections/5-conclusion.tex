@@ -1,6 +1,12 @@
-\section{Conclusion}
-- Sensors from a phone can be used to capture and virtualize movements.
-- The resulting solution is not super usefull but demonstrates potential for other applications.
-- Unfortunately the solutions does not support displacement, which would have been cool.
+\section{Conclusion \& Discussion}
 
-% Sensors from modern smartphones can be used to capture and virtualize movements.
+Physical movements can be captured with a modern smartphone's sensors.
+An accelerometor, magnetometer and gyroscopic sensor can be used to measure kinetics of the rigid body.
+Measurements from the sensors can be transfered to a different device via a internet connection with the help from websockets.
+The data is used to calculate transformations matrices, which are then used during rendering to display the movement in virtual space.
+
+The solution succesfully captures 3 degrees of freedom with the rotational motions, and displays the movement on a html canvas.
+Unfortunately the remaining 3 degrees of freedom is not succesfully captured and displayed.
+The method choosen for translational motions is sensitive to accuracy, and perhaps a different method would have been better.
+
+Regardless of missing degrees of freedom, I still think the project is cool and interesting to play with.

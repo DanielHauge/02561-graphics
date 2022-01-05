@@ -1,19 +1,90 @@
 \section{Method}
-There are challenges the problem at hand etc.
 
 \subsection{Capture physical movements}
-Sensors. Magnetic \& Accelerometors Light? etc.
-Choosing Magnetic and accelerometors, as it can be self contained etc.
+One of the challenges is to capture the physical movements.
+There are different ways of capturing movements, and an often used method is using light.
+Light is often used as it is fast, accurate and reliable. Two of the virtual environment head mounted display firms, 
+Valve and HTC with their corresponding VRHMD Index and Vive are using light for positioning. 
+Their systems require atleast two running base stations, which are essentially casting light for the headset and controllers to be tracked.
 
-The phone has these sensors and can be used as a sort of controller for capturing movements.
+
+Using base stations casting light is extensive and has it's disadvantages, so another way, is to use kinetics.
+Most modern smartphones have multiple sensors which can be used for capturing physical movements.
+
+To capture orientation, a gyroscopic sensor can capture angular velocity, 
+an accelerometer sensor can provide a reference point for which way is up and down by the earths gravity
+and a magnetometer sensor can tell which way is north et cetera. 
+All together, they can provide an absolute orientation with respect to the earth. 
+Rotating with euler angles have problems such as gimbal lock and weird rotation transitions, quaternions are therefor much prefered over euler angles.
+If the previously mentioned sensors are available, the \href{https://nitinjsanket.github.io/tutorials/attitudeest/madgwick#madgwickfilt}{Madgwick Filter algorithm} can be used to determine the orientation with respect to the earth in the form quaternions.
+This will capture the 3 rotational motions: Roll, Pitch and Yaw.
+
+To capture displacement, an accelerometer sensor in conjuction with an orientation can provide an absolute displacement.
+If sensors are started with a initial velocity $v_0$ of 0, then velocity can be updated with the acceleration $a$ and sensor frequency $t$ in the following equation:
+\begin{equation}
+    v_1 = v_0 + a \cdot t
+\end{equation}
+
+With initial velocity and new velocity, the displacement $d$ can be calculated with the following equation:
+
+\begin{equation}
+    d = \frac{v_0 + v_1}{2} \cdot t
+\end{equation}
+
+The displacement can then be used to accumulate a total displacement vector which is then used to translate the object in virtual space.
+The acceleration sensor in a phone has locked acceleration coordinates, such that:
+\begin{itemize}
+    \item x running along the width of the device, where right is the positive direction.
+    \item y correspond to the height of the device, where up is the positive direction.
+    \item z correspond to the depth of the device, where screen face is the positive direction.
+\end{itemize}   
+Because the coordinates of the acceleration is locked, the displacements calculated from these accelerations will need to be adjusted.
+Before accumulating the displacement, they need to be adjusted according to the orientation.
+The adjustment can be done by applying/multiplying the quaternion/rotation matrix to the displacement.
+Given the rotation matrix $R$ and the displacement $d$, $d$ can be adjusted and a updated total displacement vector $D$ can be calculated.
+\begin{equation}
+    D_{new} = D_{old} + R \cdot d
+\end{equation}
+With a initial total displacement of $D_x = D_y = D_z = 0$, the accelerometer can provide a way to capture the displacement movement.
+This will capture the 3 transitional motions: Surge, Sway and Heave. 
+
 
 \subsection{Data transfer}
-Wireless transfer to allow for 100\% freedom in movements. Bluetooth, wifi.
-Requirement: 100\% freedom in movements. The object should only be under constraints as in the real world.
-A phone is still a good candidat for this requirement, as it is wireless. 
-
-Wifi is used picked, as it is adequately fast and reliable.
+Because the phone is the sensor, it will be rotated in all different ways and is therefor not used as interface for displaying the virtual environment. 
+The phone has the captured sensor data, this data will need to be sent to another device for displaying the movements.
+There are multiple wireless options for transfering the sensor data. 
+Internet connection through wifi is the choosen method for connecting the device to a more suitable display device.
 
 \subsection{Display}
-Using a triangle mesh to instantiate vertex. 
-We can use affine transformation with a rotation and translation matrix to move the object in virtual space.
+Displaying rotation can be done at different stages. The rotation could be applied in eye space, such that the object would appear rotated in the correct manner, but everything else would also be rotated the same.
+A preferable rotation application would be to world space, ie. the vertecies of the object. 
+With the following equation all vertecies $v_i$ can be rotated by an arbitrary amount of quaternions $q_i$:
+\begin{equation}
+    q_i \cdot ( q_{i-1} \cdot ( \ldots (q_1 \cdot v_i \cdot q_1^{-1}) \ldots ) \cdot q_{i-1}^{-1}  )  \cdot q_i^{-1}
+\end{equation}
+
+A convenient way to work with quaternion rotation would be to calculate a rotation matrix.
+The rotation matrix can then be used in conjuctions with other transformation matrices. 
+The rotational matrix $R$ can be calculated from a quaternion $q$ by the following \href{https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToMatrix/index.htm}{equation}:
+\begin{equation}
+    R =
+    \left[ {\begin{array}{cccc}
+        1 - 2\cdot q_y^2 - 2\cdot q_z^2 & 2\cdot q_x\cdot q_y - 2\cdot q_z\cdot q_w & 2\cdot q_x \cdot q_z + 2 \cdot q_y \cdot q_w & 0 \\
+        2\cdot q_x \cdot q_y + 2 \cdot q_z \cdot q_w & 1 - 2 \cdot q_x2 - 2\cdot q_z^2 & 2\cdot q_y \cdot q_z - 2 \cdot q_x \cdot q_w & 0 \\
+        2\cdot q_x \cdot q_z - 2 \cdot q_y \cdot q_w & 2\cdot q_y \cdot q_z + 2\cdot q_x \cdot q_w & 1 - 2 \cdot q_x^2 - 2 \cdot q_y^2 & 0 \\
+        0 & 0 & 0 & 1 \\
+    \end{array} } \right]
+\end{equation}
+
+Displaying a displacement is achieved by simple translation. 
+With a total displacement vector $d$, a translation matrix $T$ can be calculated:
+\begin{equation}
+    T = \left[ {\begin{array}{cccc}
+        1 & 0 & 0 & d_x \\
+        0 & 1 & 0 & d_y \\
+        0 & 0 & 1 & d_z \\
+        0 & 0 & 0 & 1 \\
+    \end{array} } \right]
+\end{equation}
+
+Transformation with the rotation and translation matrix is the choosen method for moving the object in virtual space.

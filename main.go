@@ -25,7 +25,8 @@ func main() {
 	})
 	http.Handle("/socket.io/", initWS())
 	log.Println("Serving at http://localhost:80 and https://localhost:443")
-	go log.Fatal(http.ListenAndServeTLS(":443", "Certs/server.crt", "Certs/server.key", nil))
+
+	go log.Println(http.ListenAndServeTLS(":443", "Certs/server.crt", "Certs/server.key", nil))
 	log.Fatal(http.ListenAndServe(":80", nil))
 }
 

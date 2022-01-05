@@ -1,6 +1,20 @@
-\section{Solution}
-- The solution is this and that.
-With video.
+\newpage
+\section{Results}
+The solution is a website that when accessed with a phone and another display device, can capture rotational motion of the phone and display it's movements on a html canvas.
+Unfortunately, translational motion is not succesfully captured and displayed.
 
-\subsection{Trying the solution}
-- Instructions.
+The following link is a youtube video of a demo of the solution in action: \href{https://youtu.be/8K5ufYZokSE}{https://youtu.be/8K5ufYZokSE}  
+
+In order to try the solution, a phone with a accelerometor sensor, gyroscopic sensor and magnetometer sensor is required.
+Also another device for displaying and phone with adequate browser that support these sensors.
+To try the solution, follow these steps:
+\begin{itemize}
+    \item With display device (ex. computer) navigate with a browser to the running instance of the solution or \href{https://grafik.feveile-hauge.dk}{https://grafik.feveile-hauge.dk} (https is important)
+    \item With phone, navigate to \textbf{URL/c?id=XXX} where XXX is substituted with code on the additional device.
+    \item On phone, click the "Start sensor" button.
+    \item Put phone on stable surface pointing towards the display device and click "Realign" button. 
+\end{itemize}
+
+Following these steps will hopefully demonstrate how the solution is able to capture physical movements to be displayed virtually.
+
+\textit{To run an instance of the solution locally. Have golang installed and run "go run main.go" in a terminal at root directory of the extracted zip, with a system environment variable "development" set to true. }

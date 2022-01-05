@@ -2,21 +2,155 @@
 
 \subsection{Capturing physical movements}
 \subsubsection{Orientation}
-- Javascript AbsoluteOrientationSensor etc.
+To make an implementation that would work for most devices, a widely available API should be used. There is support for \textbf{AbsoluteOrientationSensor} API in 
+most modern browsers. This sensor provides an API for capturing orientation of a mobile device. The API outputs quaternion, which is very usefull for the currently choosen method.
+To use the phone with the web api for capturing movements, a new page on the website is created for the phone to visit.
+When visiting the page from a phone, the sensor data is captured and sent to another device which is visiting the display page.
+The sensor is initialized with frequency and reference frame, and a event listener can be added before starting.
+
+The orientation sensor is setup and started with the following code snippet:
+\code{orientationSensor = new AbsoluteOrientationSensor(\{ frequency: 60, referenceFrame: 'device' \}); \\
+orientationSensor.addEventListener('reading', ev => \{ \\
+\hspace*{10mm} const x = orientationSensor.quaternion[0]; \\
+\hspace*{10mm} const y = orientationSensor.quaternion[1]; \\
+\hspace*{10mm} const z = orientationSensor.quaternion[2]; \\
+\hspace*{10mm} const w = orientationSensor.quaternion[3]; \\
+\hspace*{10mm} console.log(x, y, z, w); \\
+\});\\
+orientationSensor.start();
+}
+
+On each read, the sensor object has an updated property called \textbf{quaternion}, which is the last captured physical rotational movements.
 
 \subsubsection{Displacement}
-- Javascript LinearAccelerationSensor
-% Attempt at additional 3 degrees of freedom. Back, forward, left, right, up and down.
-% Utilizing physics equations
-% My accelerometer was not accurate enough. (Did not make it in time) 
+Just like orientation, displacement is captured with a web api which is supported in most modern browsers. 
+The page that captures phone data is extended to capture acceleration aswell. 
+The \textbf{LinearAccelerationSensor} is used for capturing acceleration.
+Just like the orientation sensor, it is initialized with a frequency and an event listener can be added.
+Each readings contain an acceleration along x, y and z axis.
 
+\code{accelerationSensor = new LinearAccelerationSensor(\{frequency: 60\});\\
+accelerationSensor.addEventListener('reading', () => \{\\
+\hspace*{10mm} const x = accelerationSensor.x;\\
+\hspace*{10mm} const y = accelerationSensor.y;\\
+\hspace*{10mm} const z = accelerationSensor.z;\\
+\hspace*{10mm} console.log(x, y, z, w);\\
+\});\\
+accelerationSensor.start();
+}
+
+On each read, the sensor object has updated x, y and z properties, which correspond to the accelerations in x, y and z axis.
+
+\subsubsection{Support}
+An important implementation detail for using sensor web api's, is that it is required to access the website through a secure connection.
+In other words, HTTPS is required and regular HTTP is not adequate.
+Another thing is, that if the device does not have adequate sensors, the API's will not be defined in the javascript environment.
+Therefor error handling has also been implemented to let a user know if sensor is unavailable and more. 
 
 \subsection{Data transfer}
-- Power of websockets
+The data transfer has to happen between 2 clients of the website.
+One client is the phone that is visiting the page which setup capture sensors.
+Another client is a device that can display the virtual environment.
+The implementation is done with websockets. I found a golang and a javascript library from \href{https://socket.io/}{socket.io} that implements websockets.
+
+Using the library, dedicated connection logic is implemented, such that a phone can connect to another client.
+There is quite a bit more to how the data transfer implementation is done, but to keep it simple, only the actual transfering of data is covered.
+See \textbf{websocket.js} and \textbf{main.go} for full websocket code. 
+
+When a connection is established, the phone can then emit it's readings to the client via websockets.
+The following statement is emiting events with orientation sensor readings to the server.
+
+\code{ProjectSockets.Socket.emit("event", \{ id: connectionId, type: "orientation", value: JSON.stringify(orientationSensor.quaternion)\});}
+
+The website server is extended with a websocket server handler:
+Listeners for specific channels can then be added. 
+The following listener is adding functionality for the server to receive the phone's events and broadcast them to the connected display client.
+\code{server.On("event", func(c *gosocketio.Channel, msg Event) string \{ \\
+   \hspace*{10mm} if msg.EventType == "connection" \{ \\ 
+   \hspace*{20mm}     if observer[msg.SessionId] || !listener[msg.SessionId] \{ \\
+   \hspace*{30mm}     return "BAD" \\
+   \hspace*{20mm}   \} else \{ \\ 
+   \hspace*{30mm}      observer[msg.SessionId] = true \\
+   \hspace*{30mm}   connections[c.Id()] = msg.SessionId \\ 
+   \hspace*{20mm}    \} \\
+   \hspace*{10mm}   \} \\
+   \hspace*{10mm} c.BroadcastTo(msg.SessionId, msg.EventType, msg.Value) \\ 
+   \hspace*{10mm}    return "OK" \\
+\})
+}
+
+The following code will setup a listener on the display client that listens for events from the phone through the server. The event contain the readings from the phone.
+
+\code{ProjectSockets.Socket.on("orientation", orientationArray => \{ \\
+    \hspace*{10mm}  let quaternion = JSON.parse(orientationArray); \\
+    \hspace*{10mm}   if (ProjectSockets.OnOrientationRead != null) \{ \\
+        \hspace*{20mm}      ProjectSockets.OnOrientationRead(quaternion); \\
+        \hspace*{10mm}   \} \\
+        \}); 
+}
+
+This listener calls a function \textbf{OnOrientationRead} on every received readings from the phone.
+Similar listeners are made with acceleration, connection, disconnection and alignment.
+The function can be assigned to let the display device react to new orientations et cetera.
+
 
 \subsection{Display}
-- Implementation of stuff.
-% Capturing movements:
-% - Capture physical movements : Phone sensors can be utilized
-% - Data transfer : Solved by websockets
-% - Displaying object : Qaurtinions into matrices, which are then multiplied + triangle mesh.
+To display the environment, first a virtual environment with a static object is implemented.
+Using the same methods and procedures as in worksheet 5 and 10, an object is loaded with a .OBJ file, and a quad is loaded with a texture for looks.
+
+To rotate the object based on the phones readings, a variable holding a quaternion is declared and updated by each readings from the phone.
+The following code assigns the \textbf{OnOrientationRead} function to set a reference orientation and update the quaternion variable with respect to the reference.
+\code{ProjectSockets.OnOrientationRead = ori => \{ \\
+\hspace*{10mm} const newOri = [ori[0], ori[1], ori[2], ori[3]] \\
+\hspace*{10mm} if (Project.refSet == undefined) \{ \\
+\hspace*{20mm} Project.refSet = true; \\
+\hspace*{20mm} Project.q\_rot\_ref.set(newOri); \\
+\hspace*{10mm} \} \\
+\hspace*{10mm} Project.q\_rot.set(newOri); \\
+\hspace*{10mm} Project.q\_rot.multiply(Project.q\_rot\_ref); \\
+\}
+}
+
+The quaternion.js contain a function for calculating the matrix, this is used when drawing the phone:
+
+\code{const rot = new Matrix4(); \\
+const mat4 = Project.q\_rot.get\_mat4(); \\
+const flattened = flatten(mat4); \\
+rot.set({elements: flattened}); \\
+Project.g\_modelMatrix = Project.g\_modelMatrix.multiply(rot);
+}
+
+The phone readings are now able to rotate a model matrix which is then used for drawing an object in a virtual environment.
+There are more implementation details which involves perspective alignment with the screen and more, these will not be covered to keep it succinct.
+See \textbf{project.js} for full code on display/drawing.
+
+To draw the displacement, an attempt with similar approach to orientation is done.
+The following code is assigning the \textbf{OnAccelerationRead} to calculate a new total displacement vector.
+
+\code{const Displacement = \{x:0, y:0, z:0\}; \\
+const Velocity = \{x:0, y:0, z:0\}; \\
+const DeltaT = 1/15; \\
+ProjectSockets.OnAccelerationRead = Acceleration => \{ \\
+\hspace*{10mm}   const vX = Velocity.x + Acceleration.x * DeltaT \\
+\hspace*{10mm}  const vY = Velocity.y + Acceleration.y * DeltaT \\
+\hspace*{10mm}  const vZ = Velocity.z + Acceleration.z * DeltaT \\
+\hspace*{10mm}   Displacement.x = 0.5 * (vX + Velocity.x) * DeltaT \\
+\hspace*{10mm}  Displacement.y = 0.5 * (vY + Velocity.y) * DeltaT \\
+\hspace*{10mm}   Displacement.z = 0.5 * (vZ + Velocity.z) * DeltaT \\
+\hspace*{10mm}   Velocity.x = vX; \\
+\hspace*{10mm}   Velocity.y = vY; \\
+\hspace*{10mm}   Velocity.z = vZ; \\
+\hspace*{10mm}   Project.PD.x =  Displacement.x; \\
+\hspace*{10mm}   Project.PD.y =  Displacement.y; \\
+\hspace*{10mm}   Project.PD.z =  Displacement.z;\\
+    \} \\
+}
+
+A translation matrix is then multiplied to the model matrix:
+
+\code{Project.g\_modelMatrix.translate(\\ \hspace*{10mm} Project.Phone\_X +  Project.PD.x, \\ \hspace*{10mm} Project.Phone\_Y + Project.PD.y, \\ \hspace*{10mm} Project.Phone\_Z + Project.PD.z);}
+
+Unfortunately, the implementation for displaying displacement is not working as intended.
+It seems as through acceleration is not accurate, as moving the phone from one stationary position to another, the velocity is not zero when the phone is done moving.
+The acceleration or deacceleration reads must have been larger to produce a non zero velocity.
+A different method could perhaps be better at implementing the solution.

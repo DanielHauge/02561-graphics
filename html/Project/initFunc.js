@@ -4,7 +4,7 @@ ProjectInit = {
     OFFSCREEN_HEIGHT: 2048,
 
     initVertexBuffersForQuad: (gl) => {
-        let scale = 5;
+        let scale = 10;
         let vertices = new Float32Array([
           3.0*scale, -2, 2.5*scale,  -3.0*scale, -2, 2.5*scale,  -3.0*scale, -2, -2.5*scale,   3.0*scale, -2, -2.5*scale 
         ]);
@@ -29,7 +29,7 @@ ProjectInit = {
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
         }
-        img.src = "../images/xamp23.png";
+        img.src = "../images/grass.png";
       
         let o = new Object();
       

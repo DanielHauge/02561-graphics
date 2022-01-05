@@ -61,7 +61,6 @@ let Project = {
         const mat4 = Project.q_rot.get_mat4();
         const flattened = flatten(mat4);
         rot.set({elements: flattened});
-
         Project.g_modelMatrix = Project.g_modelMatrix.multiply(rot);
         Project.g_modelMatrix.rotate(-90 - (Project.q_rot_ref.elements[2]*(90)), 0, 0, 1);
         Project.g_modelMatrix.translate(0.8,0.4,0);
@@ -131,6 +130,7 @@ let Project = {
         }
         gl.viewport(0, 0, canvas.width, canvas.height);
         gl.clearColor(0.8, 0.9, 1.0, 1.0);
+        gl.enable(gl.DEPTH_TEST);
 
         // Init shaders
         const shadowProgram = createProgram(gl, Project.SHADOW_VSHADER_SOURCE, Project.SHADOW_FSHADER_SOURCE);
@@ -179,8 +179,7 @@ let Project = {
             let radian = angleDegrees/180 * Math.PI;
             // viewProjMatrix.lookAt(Math.cos(radian)* e[0], 1, Math.sin(radian)*e[0], 0,0,0, 0, 1, 0);
             // No longer rotates in eye space.
-            viewProjMatrix.lookAt(4, 1, 0, 0,0,0, 0, 1, 0);
-
+            viewProjMatrix.lookAt(2, 0.5, 0, 0,0,0, 0, 1, 0);
         }
         Project.UpdateViewMatrix();
         
@@ -230,6 +229,9 @@ let Project = {
             Project.q_rot.set(newOri);
             Project.q_rot.multiply(Project.q_rot_ref);
         }
+
+        let mvpMatrixFromLight_t = new Matrix4();
+        let mvpMatrixFromLight_p = new Matrix4();
 
         function render() {
             setTimeout(function () {
